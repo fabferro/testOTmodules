@@ -1,0 +1,393 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\graphicspath{{Pictures/}}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{framed}
+\addtolength{\oddsidemargin}{-.875in}
+\addtolength{\evensidemargin}{-.875in}
+\addtolength{\textwidth}{1.75in}
+
+\addtolength{\topmargin}{-.875in}
+\addtolength{\textheight}{1.75in}
+
+
+\begin{document}
+\title{Tutorial for the installation of Outer tracker hybrid test system}
+\author{P. Chatagnon, F. Ferro}
+\date{\today} 
+
+\maketitle
+
+All the instructions below can be found at the following links:
+\begin{itemize}
+\item  \url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/} : All information on how to connect the FC7, upload firmwares, etc
+\item  \url{https://gitlab.cern.ch/cms_tk_ph2/Ph2_ACF} : Repository for the acquisition software
+\item  \url{https://gitlab.cern.ch/cms_tk_ph2/cmsph2_tcusb} : library handling the usb communication between the PC and the crate
+\end{itemize}
+
+\section{Overview of the test system}
+
+This tutorial describes the steps to install the hybrid test system for the Phase 2 tracker of CMS. A schematic description of the test system is shown in Figure \ref{TestSchematic}. The following instructions describe the installation of the connections between the PC and the multiplexing crate, the PC and the FC7 and the power supply of the crate. 
+\begin{figure}[h!]
+ \includegraphics[width=\linewidth]{TestOverview.png} 
+  \caption{Scheme of the complete test system}
+  \label{TestSchematic}
+\end{figure}
+
+Figure \ref{PhotoTestSystem} shows the test system installed in Genova. The FC7 are hosted in the uTCA (top of the picture). The test crate is visible in the bottom of the picture.
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.5\linewidth]{TestSystem.jpeg} 
+  \caption{Overview of the test system in Genova}
+  \label{PhotoTestSystem}
+\end{figure}
+
+\section{Hardware}
+In this section the steps to install the various hardware parts of the system are detailed.
+\subsection{Power cabling and power supply setting}
+The test crate is powered by a \emph{ROHDE\&SCHARTZ HMP4040} power supply. The power cable is connected following the schematic of Figure \ref{PowerConnection}. The various power cables are clearly labeled as shown in Figure \ref{PhotoPowerConnection}.
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.7\linewidth]{ElectricalPower.png} 
+  \caption{Schematic display of the connection of the crate power cable on the power supply.}
+  \label{PowerConnection}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.7\linewidth]{PowerSupply.jpeg} 
+  \caption{Fully configured power supply.}
+  \label{PhotoPowerConnection}
+\end{figure}
+
+The voltages and current limit have to be set as indicated in Table 1. Once the voltage and current are set, the cable can be plugged in the back of the crate in any power plug, as shown in Figure \ref{PhotoPowerConnectionCrate}.
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.7\linewidth]{PowerCable.jpeg} 
+  \caption{Picture showing the power cable connection to the crate. The cable can be plugged in any of the three backplanes (here it is on the middle one).}
+  \label{PhotoPowerConnectionCrate}
+\end{figure}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline 
+Channel & CH1 & CH2 & CH3 \\ 
+\hline 
+Pair & P1V5 & P3V3 & M3V3 \\ 
+\hline 
+V & 1.8 V & 3.5 V & 3.6 V \\ 
+$A_{max}$ & 2 A & 4 A & 1 A \\ 
+\hline 
+\end{tabular} 
+\label{tableIV}
+\caption{Voltage and current limit to apply to each channel of the power supply}
+\end{table}
+
+\subsection{Backplanes setting}
+In order for the test card multiplexing to work, each backplane has to be given a unique adress. This is possible using physical switches located on the back of every backplanes. The switches are located as shown on Figure \ref{BackPlaneSwitch}. Each switch corresponds to a unique address from 0 to 3 and is activated when in its upward position. The addressing of each backplane must be done in the following way: the backplane hosting the FMC connections must be addressed 0, the following one 1, and the furthest from the FMC connector 2.
+
+\begin{figure}[h!]
+ \includegraphics[width=\linewidth]{BackPlaneSwitch.jpeg} 
+  \caption{Switches used to provide a physical address to each backplane of a crate. The address corresponding to each switch is printed above each one of them, in this case the address is 0 corresponding to the backplane with the FMC connections to the FC7.}
+  \label{BackPlaneSwitch}
+\end{figure}
+
+\subsection{Data transmission cables}
+Once the power cable is correctly installed, the FMCs and usb cables have to be installed.
+\subsubsection{FMC cables connections}
+Two FMC cables link the test crate with the FC7 used to control the backplanes. The FC7 have two FMC connectors denoted L12 and L8, while the backplane connectors are denoted J1 and J2. The FMC cables have to be plugged as:
+\begin{itemize}
+\item L8 $\rightarrow$ J2
+\item L12 $\rightarrow$ J1.
+\item i.e. the upper part of the FC7 connected with the lower part of the mini-crate.
+\end{itemize}
+The blue flat canles should be connected to the backplane (bp) 0, as well as the USB cable. 
+
+Schematically the FMC connections are shown in Figure \ref{FMCConnection}.
+\begin{figure}[h!]
+ \includegraphics[width=\linewidth]{FMCScheme.png} 
+  \caption{FMC Connection scheme}
+  \label{FMCConnection}
+\end{figure}
+
+On both the FC7 and on the crate, the cables are secured using metallic pieces screwed in place. They can be seen on Figure \ref{FMC_FC7} and \ref{FMC_Crate}. Finally, note that an adaptator is needed to plug the FMC cables on the crate. They can be seen in place on Figure \ref{FMC_Crate}.
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.6\linewidth]{FMC_FC7.jpeg} 
+  \caption{Picture of the FMC cable connection on the FC7. The connection is secured using rectangular metallic pieces, visible on the picture on each side of the connectors, which are screwed directly on the FC7.}
+  \label{FMC_FC7}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.4\linewidth]{FMC_Crate.jpeg} 
+ \includegraphics[width=0.4\linewidth]{FMC_Crate1.jpeg} 
+  \caption{Picture of the connection of the FMC cable on the crate. The cables are secured using a long flat metalic piece with foam pad. The FMC adaptators are visible.}
+  \label{FMC_Crate}
+\end{figure}
+
+\subsubsection{Usb cable connection}
+The USB connection between the PC and the crate is achieved using a USB-A/USB-B cable. The USB-B plug is connected in the back of the first backplane (i.e. the closest to the FMC connectors) as shown in Figure \ref{USBBCrate}. 
+Note that no usb device will be seen by the PC until a test card is correctly configured.
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.8\linewidth]{USBBCrate.jpeg} 
+  \caption{USB-B connection in the first backplane of the crate.}
+  \label{USBBCrate}
+\end{figure}
+
+\section{Software}
+
+The following instruction complete the following tutorials:
+\url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/tutorials/pc_connection/}.
+Make sure the PC you use has two ethernet cards (enp1s0 and enp2s0). We will set the connection on enp1s0.
+
+A few more details on how to prepare the FC7 and SD cards can be found here:
+\url{https://cernbox.cern.ch/s/stFuUdRMdO7cxF6} or alternatively \url{https://www.ge.infn.it/~ferro/CMS/OTdocs/PreparingFC7-1.pdf}
+
+Before proceeding install a rarp daemon as explained in \url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/tutorials/pc_connection/}.
+
+\subsection{Setting up the ethernet connection between the uTCA crate/FC7 and the PC} 
+Once the rarp daemon has been installed and configured, do the following to verify the state of the enp1s0 interface and restart all the necessary services.
+\begin{framed}
+\begin{verbatim}
+# Display the status of the ethernet interfaces of your PC
+nmcli d 
+
+# Restart the various ethernet services
+sudo systemctl daemon-reload
+sudo systemctl restart rarpd
+sudo systemctl restart NetworkManager
+\end{verbatim}
+\end{framed}
+
+Set an IP adress for the enp1s0 interface
+\begin{framed}
+\begin{verbatim}
+#Check the IP adress of the ethernet interface
+ifconfig 
+#the inet field of enp1s0 where the uTCA crate is plugged should show an IP 
+adress, otherwise do the following line to provide an IP adress to enp1s0
+sudo ifconfig enp1s0 192.168.0.3  
+\end{verbatim}
+\end{framed}
+
+
+The IP adress of the enp1s0 that we just configure as to be on the same network as the one of the FC7s. In other word with the enp1s0 adress set to 192.168.0.1, the IP adress of the FC7 have to be of the form 192.168.0.---
+
+Also the subnet mask should be set to 255.255.0.0.
+
+You can verify the state of the enp1s0 port using the following command:
+\begin{framed}
+\begin{verbatim}
+# Verify that enp1s0 has state connected
+nmcli d  
+\end{verbatim}
+\end{framed}
+If the ethernet port is correctly configured, the following output will be displayed:
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.6\linewidth]{Nmcli_output.png} 
+  \caption{Screen display of the \emph{nmcli d} command if the enp1s0 port is well configured.}
+  \label{GoodPing}
+\end{figure}
+
+In case, a FC7 is configured in the uTCA crate, one can "ping" it to verify the ethernet connection.
+\begin{framed}
+\begin{verbatim}
+# ping an FC_7 if it is already installed
+ping 'Name of your FC7'  
+\end{verbatim}
+\end{framed}
+If the connection is established the output should look as in Figure \ref{GoodPing}, otherwise follow the instructions in the following section.
+
+
+\subsection{Adding a new FC7 to the uTCA crate}
+Switch off the uTCA crate, and plug the new FC7 in any available slot. Warning: to connect the FC7 it requieres a bit of force, make sure it is well plugged. If the following phase fails, first verify the FC7 connection.
+
+Before switching on the crate, open a separate terminal and do:
+
+\begin{framed}
+\begin{verbatim}
+tshark -i enp1s0  
+\end{verbatim}
+\end{framed}
+
+This command listen to the enp1s0 interface and display all the packets going through it.
+Now the uTCA crate on,  look for the broadcast of the newly connect FC7. It provides its MAC  adress. Note the MAC adress before proceeding.
+
+\begin{framed}
+\begin{verbatim}
+#add a line in /etc/ethers with the MAC and a name for the FC7 (any you like)
+sudo vim /etc/ethers 
+
+#add a line in /etc/hosts with a IP adress and the corresponding name
+sudo vim /etc/hosts  
+\end{verbatim}
+\end{framed}
+
+The IP address of the new FC7 can be any address on the same sub-network as the ethernet port it is connected to : eg 192.168.0.---  in our case. Obviously, it also has to be different from addresses already used in $/etc/hosts $.
+
+\begin{framed}
+\begin{verbatim}
+ping 'FC7 IP adress'
+# or
+ping 'FC7 name'
+\end{verbatim}
+\end{framed}
+
+You should now be able to ping the new FC7. 
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.8\linewidth]{PingResponse.png} 
+  \caption{Screen display of the ping command if the FC7 has been well configured.}
+  \label{GoodPing}
+\end{figure}
+
+Files $/etc/hosts$ and $/etc/ethers$ should look like in Fig. \ref{GoodHosts}
+
+\begin{figure}[h!]
+\centering
+%\begin{subfigure}[b]{0.475\textwidth}
+  %      \centering
+        \includegraphics[width=\textwidth]{hosts.png}
+    %\end{subfigure}
+%\begin{subfigure}[b]{0.475\textwidth}
+   %     \centering
+        \includegraphics[width=0.5\textwidth]{ethers.png}
+    %\end{subfigure}
+  \caption{Screen display of /etc/hosts and /etc/ethers.}
+  \label{GoodHosts}
+\end{figure}
+
+
+
+
+\subsection{Compiling Ph2\_ACF}
+Follow the instruction in \url{https://gitlab.cern.ch/cms_tk_ph2/Ph2_ACF}. 
+The README provides straight forward tutorial to compile the code. On Alma9, follow the instruction in the \emph{"Setup on RHEL 9.1 or AlmaLinux 9.1"} section, and compile using the instruction in the \emph{"The Ph2\_ACF software"} section.
+
+Be careful to install all the required packages. For what concerns {\it protobuf} package beware that during the checks (\emph{make check}) a big amount of memory is allocated, thus one of the checks can fail simply bacause of not enough available RAM.  
+
+After cloning the repository, be sure to select the branch you want. See the available tags with \emph{git tag} and checkout the wished one with \emph{git checkout $<tagname>$}, like v4-14.
+
+
+\subsection{Compiling TCUsb}
+Follow the instructions in \url{https://gitlab.cern.ch/cms_tk_ph2/cmsph2_tcusb}.
+Once TCUsb has been compiled, you are asked to recompile \emph{Ph2\_ACF}. Before doing so, change line $127$ and $128$ of the \emph{Ph2\_ACF/setup.sh} file as:
+\begin{framed}
+\begin{verbatim}
+export CompileWithTCUSB=true
+\end{verbatim}
+\end{framed}
+
+\subsection{Communicating with the FC7/Crate}
+
+Never forget to set your command line to Ph2\_ACF dir and run the setup script \emph{. setup.sh} or \emph{source setup.sh}.
+
+\subsubsection{Provide FC7 IP adress to the sofware}
+To communicate with the FC7 using PH2\_ACF, you need to provide the IP adress of your FC7 to the program. This is done by changing the connection line in the xml description file (in our case \emph{settings/PS\_ROH.xml}) as:
+
+\begin{framed}
+\begin{verbatim}
+ <connection id="board" uri="chtcp-2.0://localhost:10203?
+ target='adress of your FC7':50001" 
+ address_table="file://settings/address_tables/d19c_address_table.xml" />
+\end{verbatim}
+\end{framed}
+
+and then do:
+\begin{framed}
+\begin{verbatim}
+/opt/cactus/bin/controlhub_start
+\end{verbatim}
+\end{framed}
+
+Note that if you have more than one FC7 board you need to provide a different (0, 1, 2, ...) board Id for each FC7.
+
+\subsubsection{Writing the right firmware to the FC7 boards}
+Firmware of the OT tracker can be download here: \url{https://udtc-ot-firmware.web.cern.ch/}
+Someone should tell you which is the latest version of the firmware for your hw configuration.
+
+\begin{framed}
+\begin{verbatim}
+#Go in Ph2_ACF folder
+cd Ph2_ACF #or Ph2_ACF_Latest or others depending on the latest installed version
+
+#Display the available firmware on the SD card of the FC7
+fpgaconfig -c settings/PS_ROH.xml -l
+
+#Upload firmware from the PC to the FC7 SD card
+fpgaconfig -b 'boardId' -c settings/PS_FEH_mainTest_test1.xml 
+-f 'firmware_file_name_on_the_PC.bin' 
+-i 'firmware_name_on_the_microSD'
+
+#for the electrical FC7 (the one with the blue falt cables)
+fpgaconfig -b 1 -c settings/PS_ROH.xml -f FC7_firmwares/ps_roh_5g_electrical.bin 
+-i ps_roh_5g_electrical
+
+#for the optical FC7 (the one with the fibers)
+fpgaconfig -b 0 -c settings/PS_ROH.xml -f ps_12m_5g_cic1_l12octa_l8quad.bin 
+-i ps_12m_5g_cic1_l12octa_l8quad
+
+#Upload a firmware of the FC7 fpga
+fpgaconfig -b 0 -c settings/PS_ROH.xml -i  ps_12m_5g_cic1_l12octa_l8quad
+fpgaconfig -b 1 -c settings/PS_ROH.xml -i ps_roh_5g_electrical
+\end{verbatim}
+\end{framed}
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=\linewidth]{firmware-writing.png} 
+  \caption{Screen display if the firmware has been correctly uploaded on the fpga}
+\end{figure}
+
+\subsubsection{Communication with the mini-crate and test boards}
+First, a scan of the available test cards has to be done:
+\begin{framed}
+\begin{verbatim}
+#Scan the crate, and display the slot occupied by a test card
+mux_setup -f settings/PS_ROH.xml --mux_scan
+\end{verbatim}
+\end{framed}
+From the output (see figure) one can see how many cards are connected to each backplane in which position.
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=\linewidth]{mux_scan.png} 
+  \caption{Screen display after a crate scanning. Two test cards are found.}
+\end{figure}
+In order to configure the connection one can run 
+\begin{framed}
+\begin{verbatim}
+#Configuring card 1 in backplane 0
+mux_setup -f settings/PS_ROH.xml --mux_configure 0,1
+\end{verbatim}
+\end{framed}
+In order to setup the optical connection of the FC7 with the test card, one must identify the USB device via {\it lsusb} command looking for a line like
+\begin{framed}
+\begin{verbatim}
+Bus 001 Device 005: ID 10c4:87a0 Silicon Labs PSRV2-CMSPH2-BRD00701 
+\end{verbatim}
+\end{framed}
+and then run the corrensponding command
+\begin{framed}
+\begin{verbatim}
+PSROHTest -f settings/PS_ROH.xml -b --USBDev 1
+\end{verbatim}
+\end{framed}
+ All the channels are tested. At least one should be seen working.
+If all the channels fail there is a problem in the trasmission/receiving of the optical signal.
+
+\end{document}
