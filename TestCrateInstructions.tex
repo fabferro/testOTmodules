@@ -384,10 +384,17 @@ Bus 001 Device 005: ID 10c4:87a0 Silicon Labs PSRV2-CMSPH2-BRD00701
 and then run the corrensponding command
 \begin{framed}
 \begin{verbatim}
-PSROHTest -f settings/PS_ROH.xml -b --USBDev 1
+#device number should be checked with lsusb
+#to check connectivity
+PSROHTest -f settings/PS_ROH.xml -b --USBBus 1 --USBDev 5 
+
+#run the full test
+PSROHTest -f settings/PS_ROH.xml --ep 0xCA --test-fcmd --test-clock --test-i2c 1000 \
+--test-eom --test-vtrx --test-reset --hybridId CMSPH2-PRT00193 -b \
+--test-eom --measure-input-iv --USBBus 1 --USBDev 5
 \end{verbatim}
 \end{framed}
  All the channels are tested. At least one should be seen working.
-If all the channels fail there is a problem in the trasmission/receiving of the optical signal.
+If all the channels fail there is a problem in the transmission/receiving of the optical signal.\footnote[1]{FC7 version has to be checked.}\footnote[2]{If an optical mezzanine is missing channel 0 might be seen as locked (!). Disable these channels to prevent errors.}
 
 \end{document}
