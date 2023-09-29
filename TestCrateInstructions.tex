@@ -395,6 +395,47 @@ PSROHTest -f settings/PS_ROH.xml --ep 0xCA --test-fcmd --test-clock --test-i2c 1
 \end{verbatim}
 \end{framed}
  All the channels are tested. At least one should be seen working.
-If all the channels fail there is a problem in the transmission/receiving of the optical signal.\footnote[1]{FC7 version has to be checked.}\footnote[2]{If an optical mezzanine is missing channel 0 might be seen as locked (!). Disable these channels to prevent errors.}
+If all the channels fail there is a problem in the transmission/receiving of the optical signal.\footnote[1]{FC7 version has to be checked.}
+\footnote[2]{If an optical mezzanine is missing channel 0 might be seen as locked (!). Disable these channels to prevent errors.}
+\subsection{Installing and using the GUI}
+In order to install the GUI, see the repository in gitlab \\
+\url{https://gitlab.cern.ch/imateosd/gui-for-hybrids-testing-on-crate-systems}\\
+
+The commands to run the GUI are:
+
+\begin{framed}
+\begin{verbatim}
+#inside gui-for-hybrids-testing-on-crate-systems
+source setup.sh
+python3 cratetesting.py
+\end{verbatim}
+\end{framed}
+
+The first time the GUI is used, the file hybrid/PSROH.py might need to be updated. Especially the following variables:
+\begin{itemize}
+\item[-] PH2\_ACF\_WORKING\_DIRECTORY
+\item[-] DESC\_FILES
+\item[-] FIRMWARE
+\end{itemize}
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=\linewidth]{psroh.png} 
+  \caption{Screen display of a portion of hybrid/PSROH.py}
+\end{figure}
+
+configuration.json file must also be updated.
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=\linewidth]{configuration.png} 
+  \caption{Screen display of a portion of configuration.json.}
+\end{figure}
+
+The following parameters need to be changed carefully:
+\begin{itemize}
+\item[-] default\_Ph2\_ACF\_directory : the directory where Ph2\_ACF is installed
+\item[-] default\_fw\_image : the firmware image to be installed on the electrical FC7
+\item[-] default\_settings\_files : a HW configuration xml file done on purpose where the electrical FC7 is board 0. One can get PS\_ROH.xml, rename it, delete the optical FC7 part and change the board number from 1 to 0.
+\end{itemize}
 
 \end{document}
