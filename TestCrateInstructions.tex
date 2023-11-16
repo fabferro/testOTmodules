@@ -147,6 +147,18 @@ Note that no usb device will be seen by the PC until a test card is correctly co
   \label{USBBCrate}
 \end{figure}
 
+\subsection{AMC13 module}
+In order to provide a clock to the system the AMC13 module can be used (\url{http://www.amc13.info}). The module can be plugged as in Figure \ref{amc13} and a loopback connection fiber must be plugged in. Note that even if the module is correctly powered no front panel led may be on.
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.8\linewidth]{amc13.jpg} 
+  \caption{AMC13 module inside the crate.}
+  \label{amc13}
+\end{figure}
+
+
+
+
 \section{Software}
 
 The following instruction complete the following tutorials:
@@ -253,7 +265,7 @@ You should now be able to ping the new FC7.
 \centering
  \includegraphics[width=0.8\linewidth]{PingResponse.png} 
   \caption{Screen display of the ping command if the FC7 has been well configured.}
-  \label{GoodPing}
+  \label{GoodPing2}
 \end{figure}
 
 Files $/etc/hosts$ and $/etc/ethers$ should look like in Fig. \ref{GoodHosts}
@@ -397,9 +409,62 @@ PSROHTest -f settings/PS_ROH.xml --ep 0xCA --test-fcmd --test-clock --test-i2c 1
  All the channels are tested. At least one should be seen working.
 If all the channels fail there is a problem in the transmission/receiving of the optical signal.\footnote[1]{FC7 version has to be checked.}
 \footnote[2]{If an optical mezzanine is missing channel 0 might be seen as locked (!). Disable these channels to prevent errors.}
+
+
+\subsubsection{Using AMC13 clock}
+In order to have more reliable results, the clock provided by the AMC13 module should be used, instead the internal one.
+The AMC13 module should first set up and enabled. What follows has been extracted by the code and notes in gitlab repository at \url{https://gitlab.cern.ch/cms-ot-hybrids/amc13-mch-configuration-scripts}.
+
+First thing to do is to provide two IP adresses to the two tongues of the module T1 and T2. The procedure is the same as that used for adding a new FC7: use tshark to spot the MAC addresses of the two tongues and then edit /etc/ethers and /etc/hosts. The rule of thumb to identify T1 wrt T2 is that the one that keeps talking is T1. T1 and T2 IP addresses should differ by 1 digit (see Figure \ref{GoodHosts}).
+
+In order to be able to configure the AMC13, one can have a look at \url{https://gitlab.cern.ch/cms-ot-hybrids/amc13-mch-configuration-scripts/-/blob/master/Getting_started_with_AMC13_module.pdf?ref_type=heads} (note that the instructions are for Centos7 and that some of the required packages may already be installed. Note also that the PATHs are sometimes referred to the home $\sim$ directory instead of the actual work dir. {\bf Forget} about the IP assignment algorithm unless strictly needed for some reason). 
+
+After having installed the AMC13 code inside the amc13 dir, edit {\it connectionSN43.xml} with the right IPs and run 
+\begin{framed}
+\begin{verbatim}
+. env.sh
+tools/bin/AMC13Tool2.exe -c amc13/etc/amc13/connectionSN43.xml
+\end{verbatim}
+\end{framed}
+If the AMC13 is connected no error will be reported and with the {\it list} command it will be shown as in Figure \ref{amc13connected}.
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=\linewidth]{amc13connected.png} 
+  \caption{Checking AMC13 connection.}
+\label{amc13connected}
+\end{figure}
+In order to configure the AMC13 the following line can be entered instead of the {\it list} command:
+\begin{framed}
+\begin{verbatim}
+> en 1-12 f t
+> exit
+\end{verbatim}
+\end{framed}
+
+The HW needs now to be instructed to use the clock provided by the AMC13 module. The file settings/PS\_ROH.xml needs to be modified setting the clock\_source\_u7 register to 0 for each board:
+\begin{framed}
+\begin{verbatim}
+<Register name="clock_source_u7">0</Register>
+\end{verbatim}
+\end{framed}
+a new file can be created (settings/PS\_ROH\_AMC.xml) and it can be used to configure the boards and rerun the test:
+\begin{framed}
+\begin{verbatim}
+# e.g.
+mux_setup -f settings/PS_ROH_AMC.xml --mux_configure 0,2
+PSROHTest -f settings/PS_ROH_AMC.xml --ep 0xCA --test-fcmd --test-clock --test-i2c 1000 \\ 
+--test-eom --test-vtrx --test-reset --hybridId CMSPH2-PRT00193 -b --test-eom \\
+--measure-input-iv --USBBus 1 --USBDev 46
+\end{verbatim}
+\end{framed}
+
+
+
 \subsection{Installing and using the GUI}
 In order to install the GUI, see the repository in gitlab \\
 \url{https://gitlab.cern.ch/imateosd/gui-for-hybrids-testing-on-crate-systems}\\
+
+Don't forget to edit {\it configuration.json} file if needed. \\
 
 The commands to run the GUI are:
 
@@ -422,6 +487,7 @@ The first time the GUI is used, the file hybrid/PSROH.py might need to be update
 \centering
  \includegraphics[width=\linewidth]{psroh.png} 
   \caption{Screen display of a portion of hybrid/PSROH.py}
+  \label{screenshot}	
 \end{figure}
 
 configuration.json file must also be updated.
@@ -437,5 +503,8 @@ The following parameters need to be changed carefully:
 \item[-] default\_fw\_image : the firmware image to be installed on the electrical FC7
 \item[-] default\_settings\_files : a HW configuration xml file done on purpose where the electrical FC7 is board 0. One can get PS\_ROH.xml, rename it, delete the optical FC7 part and change the board number from 1 to 0.
 \end{itemize}
+
+
+
 
 \end{document}
