@@ -9,6 +9,8 @@
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{framed}
+\usepackage{pdfpages}
+\usepackage{appendix}
 \addtolength{\oddsidemargin}{-.875in}
 \addtolength{\evensidemargin}{-.875in}
 \addtolength{\textwidth}{1.75in}
@@ -67,7 +69,9 @@ The test crate is powered by a \emph{ROHDE\&SCHARTZ HMP4040} power supply. The p
   \label{PhotoPowerConnection}
 \end{figure}
 
-The voltages and current limit have to be set as indicated in Table 1. Once the voltage and current are set, the cable can be plugged in the back of the crate in any power plug, as shown in Figure \ref{PhotoPowerConnectionCrate}.
+The voltages and current limit have to be set as indicated in Table \ref{tableV}. Once the voltage and current are set, the cable can be plugged in the back of the crate in any power plug, as shown in Figure \ref{PhotoPowerConnectionCrate}.
+The cable connections for the test of ROH and POH's are the same. Channel1 has a fixed voltage for ROH tests while for POH's it becomes a {\it Test channel} and its voltage is remotely controlled. Note that, in the case of POH test, if the starting voltage of Channel1 is not set to 10.5V the test card cannot be configured.  
+\par The ethernet card of the PS must be correctly configured, proving a fixed IP address. It has to be in the same subnet as for the FC7's - see section \ref{fc7connection} ({\it in our case: 192.168.0.10}).
 
 \begin{figure}[h!]
 \centering
@@ -84,7 +88,8 @@ Channel & CH1 & CH2 & CH3 \\
 \hline 
 Pair & P1V5 & P3V3 & M3V3 \\ 
 \hline 
-V & 1.8 V & 3.5 V & 3.6 V \\ 
+V (ROH)& 1.8 V & 3.5 V & 3.6 V \\
+V (POH)& 10.5 V & 3.5 V & 3.6 V \\
 $A_{max}$ & 2 A & 4 A & 1 A \\ 
 \hline 
 \end{tabular} 
@@ -159,7 +164,7 @@ In order to provide a clock to the system the AMC13 module can be used (\url{htt
 
 
 
-\section{Software}
+\section{PC setup and software installation}
 
 The following instruction complete the following tutorials:
 \url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/tutorials/pc_connection/}.
@@ -171,6 +176,7 @@ A few more details on how to prepare the FC7 and SD cards can be found here:
 Before proceeding install a rarp daemon as explained in \url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/tutorials/pc_connection/}.
 
 \subsection{Setting up the ethernet connection between the uTCA crate/FC7 and the PC} 
+\label{fc7connection}
 Once the rarp daemon has been installed and configured, do the following to verify the state of the enp1s0 interface and restart all the necessary services.
 \begin{framed}
 \begin{verbatim}
@@ -287,7 +293,7 @@ Files $/etc/hosts$ and $/etc/ethers$ should look like in Fig. \ref{GoodHosts}
 
 
 
-\subsection{Compiling Ph2\_ACF}
+\subsection{Installing Ph2\_ACF}
 Follow the instruction in \url{https://gitlab.cern.ch/cms_tk_ph2/Ph2_ACF}. 
 The README provides straight forward tutorial to compile the code. On Alma9, follow the instruction in the \emph{"Setup on RHEL 9.1 or AlmaLinux 9.1"} section, and compile using the instruction in the \emph{"The Ph2\_ACF software"} section.
 
@@ -296,7 +302,7 @@ Be careful to install all the required packages. For what concerns {\it protobuf
 After cloning the repository, be sure to select the branch you want. See the available tags with \emph{git tag} and checkout the wished one with \emph{git checkout $<tagname>$}, like v4-14.
 
 
-\subsection{Compiling TCUsb}
+\subsection{Installing TCUsb}
 Follow the instructions in \url{https://gitlab.cern.ch/cms_tk_ph2/cmsph2_tcusb}.
 Once TCUsb has been compiled, you are asked to recompile \emph{Ph2\_ACF}. Before doing so, change line $127$ and $128$ of the \emph{Ph2\_ACF/setup.sh} file as:
 \begin{framed}
@@ -305,11 +311,52 @@ export CompileWithTCUSB=true
 \end{verbatim}
 \end{framed}
 
+Currently the TCUsb package used for POH tests is customized and downloadable from \url{https://gitlab.cern.ch/pszydlik/cmsph2_tcusb/-/tree/File_refactor?ref_type=heads}.
+
+\subsection{Installing Powder (POH only)}
+In order to use from remote the Power Supply during the test of POH's the Powder package must be installed \url{https://gitlab.cern.ch/cms_tk_ph2/power_supply}.
+The config file must be properly modified:
+\begin{framed}
+\begin{verbatim}
+File: config/configRohdeSchwartz.xml
+
+<?xml version="1.0"? encoding="UTF-8"?>
+<Devices>
+    <PowerSupply
+        ID          =   "PSU"
+        InUse       =   "Yes"
+        Model       =   "RohdeSchwarz"
+        Connection  =   "Ethernet"
+        IPAddress   =   "192.168.0.10"
+        Port        =   "5025"
+    >
+    <Channel ID="P3V3"        Channel="2" InUse ="No" />
+    <Channel ID="N3V3"        Channel="3" InUse ="No" />
+    <Channel ID="TestVoltage" Channel="1" InUse ="Yes" />
+    <Channel ID="Empty"       Channel="4" InUse ="No" />
+    </PowerSupply>
+</Devices>
+\end{verbatim}
+\end{framed}
+Note that only the TestVoltage channel is remotely controlled. The other (2) channels must stay set as they are.
+
+\par Before running the POH test the power supply server must be started on a new terminal window and left running till needed
+\begin{framed}
+\begin{verbatim}
+PowerSupplyController -c config/configRohdeSchwartz.xml
+\end{verbatim}
+\end{framed}
+
+\subsection{Installing Tc-controller}
+The code can be downloaded from \url{https://gitlab.cern.ch/cms-ot-hybrids/tc-controller} and installed following the instructions in the README.
+\par A config file must be added to define the test channel to be used by the controlled power supply.
+In our case {\it config/configGenova.xml} has been edited accordingly to the setup in Powder package.
+
 \subsection{Communicating with the FC7/Crate}
 
 Never forget to set your command line to Ph2\_ACF dir and run the setup script \emph{. setup.sh} or \emph{source setup.sh}.
 
-\subsubsection{Provide FC7 IP adress to the sofware}
+\subsubsection{Provide FC7 IP adress to the software}
 To communicate with the FC7 using PH2\_ACF, you need to provide the IP adress of your FC7 to the program. This is done by changing the connection line in the xml description file (in our case \emph{settings/PS\_ROH.xml}) as:
 
 \begin{framed}
@@ -339,10 +386,10 @@ Someone should tell you which is the latest version of the firmware for your hw 
 cd Ph2_ACF #or Ph2_ACF_Latest or others depending on the latest installed version
 
 #Display the available firmware on the SD card of the FC7
-fpgaconfig -c settings/PS_ROH.xml -l
+fpgaconfig -b 'boardId' -c settings/PS_ROH.xml -l
 
 #Upload firmware from the PC to the FC7 SD card
-fpgaconfig -b 'boardId' -c settings/PS_FEH_mainTest_test1.xml 
+fpgaconfig -b 'boardId' -c settings/PS_ROH.xml 
 -f 'firmware_file_name_on_the_PC.bin' 
 -i 'firmware_name_on_the_microSD'
 
@@ -351,14 +398,21 @@ fpgaconfig -b 1 -c settings/PS_ROH.xml -f FC7_firmwares/ps_roh_5g_electrical.bin
 -i ps_roh_5g_electrical
 
 #for the optical FC7 (the one with the fibers)
-fpgaconfig -b 0 -c settings/PS_ROH.xml -f ps_12m_5g_cic1_l12octa_l8quad.bin 
--i ps_12m_5g_cic1_l12octa_l8quad
+fpgaconfig -b 0 -c settings/PS_ROH.xml -f ps_12m_5g_cic2_l12octa_l8quad.bin 
+-i ps_12m_5g_cic2_l12octa_l8quad
 
 #Upload a firmware of the FC7 fpga
-fpgaconfig -b 0 -c settings/PS_ROH.xml -i  ps_12m_5g_cic1_l12octa_l8quad
+fpgaconfig -b 0 -c settings/PS_ROH.xml -i  ps_12m_5g_cic2_l12octa_l8quad
 fpgaconfig -b 1 -c settings/PS_ROH.xml -i ps_roh_5g_electrical
 \end{verbatim}
 \end{framed}
+
+In case of {\bf POH} tests ONLY the electrical FC7 is used, since no data readout is needed. The boardId is in this case 0 (the HW settings can be just those in {\it settings/default.xml}) and there are two FWs that are used:
+\begin{itemize}
+\item[-] default\_LV.bin: used just to check for configurable cards in the mini-crate
+\item[-] POH\_HV.bin: used to run the test (TestVoltage must be set to 10.5V to have it working properly)
+\end{itemize}
+ 
 
 \begin{figure}[h!]
 \centering
@@ -372,6 +426,9 @@ First, a scan of the available test cards has to be done:
 \begin{verbatim}
 #Scan the crate, and display the slot occupied by a test card
 mux_setup -f settings/PS_ROH.xml --mux_scan
+
+#for POH
+#mux_setup -f settings/default.xml --mux_scan 
 \end{verbatim}
 \end{framed}
 From the output (see figure) one can see how many cards are connected to each backplane in which position.
@@ -385,6 +442,9 @@ In order to configure the connection one can run
 \begin{verbatim}
 #Configuring card 1 in backplane 0
 mux_setup -f settings/PS_ROH.xml --mux_configure 0,1
+
+#for POH
+#mux_setup -f settings/default.xml --mux_configure 0,1
 \end{verbatim}
 \end{framed}
 In order to setup the optical connection of the FC7 with the test card, one must identify the USB device via {\it lsusb} command looking for a line like
@@ -393,31 +453,17 @@ In order to setup the optical connection of the FC7 with the test card, one must
 Bus 001 Device 005: ID 10c4:87a0 Silicon Labs PSRV2-CMSPH2-BRD00701 
 \end{verbatim}
 \end{framed}
-and then run the corrensponding command
-\begin{framed}
-\begin{verbatim}
-#device number should be checked with lsusb
-#to check connectivity
-PSROHTest -f settings/PS_ROH.xml -b --USBBus 1 --USBDev 5 
-
-#run the full test
-PSROHTest -f settings/PS_ROH.xml --ep 0xCA --test-fcmd --test-clock --test-i2c 1000 \
---test-eom --test-vtrx --test-reset --hybridId CMSPH2-PRT00193 -b \
---test-eom --measure-input-iv --USBBus 1 --USBDev 5
-\end{verbatim}
-\end{framed}
- All the channels are tested. At least one should be seen working.
-If all the channels fail there is a problem in the transmission/receiving of the optical signal.\footnote[1]{FC7 version has to be checked.}
-\footnote[2]{If an optical mezzanine is missing channel 0 might be seen as locked (!). Disable these channels to prevent errors.}
 
 
 \subsubsection{Using AMC13 clock}
 In order to have more reliable results, the clock provided by the AMC13 module should be used, instead the internal one.
-The AMC13 module should first set up and enabled. What follows has been extracted by the code and notes in gitlab repository at \url{https://gitlab.cern.ch/cms-ot-hybrids/amc13-mch-configuration-scripts}.
+The AMC13 module should first set up and enabled. What follows has been extracted by the code and notes in gitlab repository at\\ \url{https://gitlab.cern.ch/cms-ot-hybrids/amc13-mch-configuration-scripts}.
 
 First thing to do is to provide two IP adresses to the two tongues of the module T1 and T2. The procedure is the same as that used for adding a new FC7: use tshark to spot the MAC addresses of the two tongues and then edit /etc/ethers and /etc/hosts. The rule of thumb to identify T1 wrt T2 is that the one that keeps talking is T1. T1 and T2 IP addresses should differ by 1 digit (see Figure \ref{GoodHosts}).
 
-In order to be able to configure the AMC13, one can have a look at \url{https://gitlab.cern.ch/cms-ot-hybrids/amc13-mch-configuration-scripts/-/blob/master/Getting_started_with_AMC13_module.pdf?ref_type=heads} (note that the instructions are for Centos7 and that some of the required packages may already be installed. Note also that the PATHs are sometimes referred to the home $\sim$ directory instead of the actual work dir. {\bf Forget} about the IP assignment algorithm unless strictly needed for some reason). 
+In order to be able to configure the AMC13, one can have a look at \\
+\url{https://gitlab.cern.ch/cms-ot-hybrids/amc13-mch-configuration-scripts/-/blob/master/Getting_started_with_AMC13_module.pdf?ref_type=heads} 
+ (note that the instructions are for Centos7 and that some of the required packages may already be installed. Note also that the PATHs are sometimes referred to the home $\sim$ directory instead of the actual work dir. {\bf Forget} about the IP assignment algorithm unless strictly needed for some reason). 
 
 After having installed the AMC13 code inside the amc13 dir, edit {\it connectionSN43.xml} with the right IPs and run 
 \begin{framed}
@@ -447,36 +493,44 @@ The HW needs now to be instructed to use the clock provided by the AMC13 module.
 <Register name="clock_source_u7">0</Register>
 \end{verbatim}
 \end{framed}
-a new file can be created (settings/PS\_ROH\_AMC.xml) and it can be used to configure the boards and rerun the test:
+a new file can be created (settings/PS\_ROH\_AMC.xml) and it can be used to configure the boards and rerun the test.
+
+
+\subsection{Running the tests from command line}
+The use of the GUI is recommended to run the tests. 
+In order to run the test from command line for ROH's:
 \begin{framed}
 \begin{verbatim}
-# e.g.
-mux_setup -f settings/PS_ROH_AMC.xml --mux_configure 0,2
-PSROHTest -f settings/PS_ROH_AMC.xml --ep 0xCA --test-fcmd --test-clock --test-i2c 1000 \\ 
---test-eom --test-vtrx --test-reset --hybridId CMSPH2-PRT00193 -b --test-eom \\
---measure-input-iv --USBBus 1 --USBDev 46
+#device number should be checked with lsusb
+#to check connectivity
+PSROHTest -f settings/PS_ROH.xml -b --USBBus 1 --USBDev 5 
+
+#run the full test
+PSROHTest -f settings/PS_ROH.xml --ep 0xCA --test-fcmd --test-clock --test-i2c 1000 \
+--test-eom --test-vtrx --test-reset --hybridId CMSPH2-PRT00193 -b \
+--test-eom --measure-input-iv --USBBus 1 --USBDev 5
 \end{verbatim}
 \end{framed}
+Note that all the optical channels are tested. At least one should be seen working.
+If all the channels fail there is a problem in the transmission/receiving of the optical signal.\footnote[1]{FC7 version has to be checked.}
+\footnote[2]{If an optical mezzanine is missing channel 0 might be seen as locked (!). Disable these channels to prevent errors.}
 
+In order to run the test from command line for POH's:
+\begin{framed}
+\begin{verbatim}
+pspoh_w_root_file -f ./config/configGenova.xml --useLoadVector \
+--tc_File ./config/configPSPOH_short.xml --supplyStep 1 --supplyMin 8 \
+--supplyMax 11 --hybridId PSPOH-210000001 --output PSPOH-210000001 \
+--USBBus 1  --USBDev 095
+\end{verbatim}
+\end{framed}
 
 
 \subsection{Installing and using the GUI}
 In order to install the GUI, see the repository in gitlab \\
 \url{https://gitlab.cern.ch/imateosd/gui-for-hybrids-testing-on-crate-systems}\\
 
-Don't forget to edit {\it configuration.json} file if needed. \\
-
-The commands to run the GUI are:
-
-\begin{framed}
-\begin{verbatim}
-#inside gui-for-hybrids-testing-on-crate-systems
-source setup.sh
-python3 cratetesting.py
-\end{verbatim}
-\end{framed}
-
-The first time the GUI is used, the file hybrid/PSROH.py might need to be updated. Especially the following variables:
+The first time the GUI is used, the file hybrid/PSROH.py (or hybrid/PSPOH.py) might need to be updated. Especially the following variables:
 \begin{itemize}
 \item[-] PH2\_ACF\_WORKING\_DIRECTORY
 \item[-] DESC\_FILES
@@ -490,21 +544,53 @@ The first time the GUI is used, the file hybrid/PSROH.py might need to be update
   \label{screenshot}	
 \end{figure}
 
-configuration.json file must also be updated.
+configuration.json file must also be updated. Paths and test command name must be correctly specified (configurations for ROH and POH tests are of course different).
 \begin{figure}[h!]
 \centering
  \includegraphics[width=\linewidth]{configuration.png} 
-  \caption{Screen display of a portion of configuration.json.}
+  \caption{Screen display of a portion of configuration.json for ROH test.}
 \end{figure}
 
 The following parameters need to be changed carefully:
 \begin{itemize}
 \item[-] default\_Ph2\_ACF\_directory : the directory where Ph2\_ACF is installed
 \item[-] default\_fw\_image : the firmware image to be installed on the electrical FC7
-\item[-] default\_settings\_files : a HW configuration xml file done on purpose where the electrical FC7 is board 0. One can get PS\_ROH.xml, rename it, delete the optical FC7 part and change the board number from 1 to 0.
+\item[-] default\_settings\_files : a HW configuration xml file done on purpose where the electrical FC7 is board 0 (default.xml). 
 \end{itemize}
 
+CERN credential are requested the first time the GUI is run (or the cache reset). This is done to access the DB. For the moment being only SSO accounts are supported (no two factor authentication) that are registered to one of the following CERN e-groups:
+\begin{itemize}
+\item[-] Construction Operator: cms-tracker-assemblyOperators
+\item[-] Quality Control Operator: cms-tracker-qcOperators
+\item[-] Tracking Operator: cms-tracker-trackingOperators
+\end{itemize}
+The access is granted only to the {\it production} DB and not to the {\it development} one (see configuration.json). For more information:
+\url{https://espace.cern.ch/Tracker-Upgrade/DataBase/SitePages/Home.aspx}.
 
+The commands to run the GUI are:
+
+\begin{framed}
+\begin{verbatim}
+#inside gui-for-hybrids-testing-on-crate-systems
+source setup.sh
+python3 cratetesting.py
+\end{verbatim}
+\end{framed}
+
+The GUI will ask how many hybrid one wants to test and to insert the full code (bar code) of test card and hybrid module.
+No character will be typed if different from expected (e.g. usually names start with CMSPH2). \\
+When the button to run the test is pushed, the GUI will first check for the presence of the boards in the mini-crate and then actually run the test. \\
+
+When the test is finished, at least one Enter command must be typed in the terminal window to complete the DB upload procedure. It typically fails despite messages of success are displayed. 
+
+\newpage
+
+\appendix
+
+\appendixpage
+\section{Original instruction files}
+\includepdf[pages=-]{./Includes/PS-POH_instructions_to_run_tests.pdf}
+\includepdf[pages=-]{./Includes/PS-POH_mounting_guide.pdf}
 
 
 \end{document}
