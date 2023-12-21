@@ -26,13 +26,6 @@
 
 \maketitle
 
-All the instructions below can be found at the following links:
-\begin{itemize}
-\item  \url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/} : All information on how to connect the FC7, upload firmwares, etc
-\item  \url{https://gitlab.cern.ch/cms_tk_ph2/Ph2_ACF} : Repository for the acquisition software
-\item  \url{https://gitlab.cern.ch/cms_tk_ph2/cmsph2_tcusb} : library handling the usb communication between the PC and the crate
-\end{itemize}
-
 \section{Overview of the test system}
 
 This tutorial describes the steps to install the hybrid test system for the Phase 2 tracker of CMS. A schematic description of the test system is shown in Figure \ref{TestSchematic}. The following instructions describe the installation of the connections between the PC and the multiplexing crate, the PC and the FC7 and the power supply of the crate. 
@@ -69,18 +62,8 @@ The test crate is powered by a \emph{ROHDE\&SCHARTZ HMP4040} power supply. The p
   \label{PhotoPowerConnection}
 \end{figure}
 
-The voltages and current limit have to be set as indicated in Table \ref{tableV}. Once the voltage and current are set, the cable can be plugged in the back of the crate in any power plug, as shown in Figure \ref{PhotoPowerConnectionCrate}.
-The cable connections for the test of ROH and POH's are the same. Channel1 has a fixed voltage for ROH tests while for POH's it becomes a {\it Test channel} and its voltage is remotely controlled. Note that, in the case of POH test, if the starting voltage of Channel1 is not set to 10.5V the test card cannot be configured.  
-\par The ethernet card of the PS must be correctly configured, proving a fixed IP address. It has to be in the same subnet as for the FC7's - see section \ref{fc7connection} ({\it in our case: 192.168.0.10}).
-
-\begin{figure}[h!]
-\centering
- \includegraphics[width=0.7\linewidth]{PowerCable.jpeg} 
-  \caption{Picture showing the power cable connection to the crate. The cable can be plugged in any of the three backplanes (here it is on the middle one).}
-  \label{PhotoPowerConnectionCrate}
-\end{figure}
-
 \begin{table}[h!]
+
 \centering
 \begin{tabular}{|c|c|c|c|}
 \hline 
@@ -93,9 +76,22 @@ V (POH)& 10.5 V & 3.5 V & 3.6 V \\
 $A_{max}$ & 2 A & 4 A & 1 A \\ 
 \hline 
 \end{tabular} 
-\label{tableIV}
 \caption{Voltage and current limit to apply to each channel of the power supply}
+\label{tabella}
 \end{table}
+
+The voltages and current limit have to be set as indicated in Table \ref{tabella}. Once the voltage and current are set, the cable can be plugged in the back of the crate in any power plug, as shown in Figure \ref{PhotoPowerConnectionCrate}.
+The cable connections for the test of ROH and POH are the same. Channel1 has a fixed voltage for ROH tests while for POH it becomes a {\it Test channel} and its voltage is remotely controlled. Note that, in the case of POH test, if the starting voltage of Channel1 is not set to 10.5V the test card cannot be configured.  
+\par The ethernet card of the PS must be correctly configured, proving a fixed IP address. It has to be in the same subnet as for the FC7's - see section \ref{fc7connection} ({\it in our case: 192.168.0.10}).
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=0.7\linewidth]{PowerCable.jpeg} 
+  \caption{Picture showing the power cable connection to the crate. The cable can be plugged in any of the three backplanes (here it is on the middle one).}
+  \label{PhotoPowerConnectionCrate}
+\end{figure}
+
+
 
 \subsection{Backplanes setting}
 In order for the test card multiplexing to work, each backplane has to be given a unique adress. This is possible using physical switches located on the back of every backplanes. The switches are located as shown on Figure \ref{BackPlaneSwitch}. Each switch corresponds to a unique address from 0 to 3 and is activated when in its upward position. The addressing of each backplane must be done in the following way: the backplane hosting the FMC connections must be addressed 0, the following one 1, and the furthest from the FMC connector 2.
@@ -153,7 +149,7 @@ Note that no usb device will be seen by the PC until a test card is correctly co
 \end{figure}
 
 \subsection{AMC13 module}
-In order to provide a clock to the system the AMC13 module can be used (\url{http://www.amc13.info}). The module can be plugged as in Figure \ref{amc13} and a loopback connection fiber must be plugged in. Note that even if the module is correctly powered no front panel led may be on.
+In order to provide a clock to the system, the AMC13 module can be used (\url{http://www.amc13.info}). The module can be plugged as in Figure \ref{amc13} and a loopback connection fiber must be plugged in. Note that even if the module is correctly powered no front panel led may be on.
 \begin{figure}[h!]
 \centering
  \includegraphics[width=0.8\linewidth]{amc13.jpg} 
@@ -166,8 +162,11 @@ In order to provide a clock to the system the AMC13 module can be used (\url{htt
 
 \section{PC setup and software installation}
 
-The following instruction complete the following tutorials:
-\url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/tutorials/pc_connection/}.
+The following instructions complete the information and tutorials at:
+\begin{itemize}
+\item \url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/} 
+\item \url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/tutorials/pc_connection/}.
+\end{itemize}
 Make sure the PC you use has two ethernet cards (enp1s0 and enp2s0). We will set the connection on enp1s0.
 
 A few more details on how to prepare the FC7 and SD cards can be found here:
@@ -255,7 +254,7 @@ sudo vim /etc/hosts
 \end{verbatim}
 \end{framed}
 
-The IP address of the new FC7 can be any address on the same sub-network as the ethernet port it is connected to : eg 192.168.0.---  in our case. Obviously, it also has to be different from addresses already used in $/etc/hosts $.
+The IP address of the new FC7 can be any address on the same sub-network as the ethernet port it is connected to: e.g. 192.168.0.---  in our case. Obviously, it also has to be different from addresses already used in $/etc/hosts $.
 
 \begin{framed}
 \begin{verbatim}
@@ -294,6 +293,7 @@ Files $/etc/hosts$ and $/etc/ethers$ should look like in Fig. \ref{GoodHosts}
 
 
 \subsection{Installing Ph2\_ACF}
+Ph2\_ACF is the main sodtware package for DAQ.
 Follow the instruction in \url{https://gitlab.cern.ch/cms_tk_ph2/Ph2_ACF}. 
 The README provides straight forward tutorial to compile the code. On Alma9, follow the instruction in the \emph{"Setup on RHEL 9.1 or AlmaLinux 9.1"} section, and compile using the instruction in the \emph{"The Ph2\_ACF software"} section.
 
@@ -302,20 +302,22 @@ Be careful to install all the required packages. For what concerns {\it protobuf
 After cloning the repository, be sure to select the branch you want. See the available tags with \emph{git tag} and checkout the wished one with \emph{git checkout $<tagname>$}, like v4-14.
 
 
-\subsection{Installing TCUsb}
+\subsection{Installing tcusb}
+Tcusb is a library handling the usb communication between the PC and the crate.
 Follow the instructions in \url{https://gitlab.cern.ch/cms_tk_ph2/cmsph2_tcusb}.
-Once TCUsb has been compiled, you are asked to recompile \emph{Ph2\_ACF}. Before doing so, change line $127$ and $128$ of the \emph{Ph2\_ACF/setup.sh} file as:
+Once tcusb has been compiled, you are asked to recompile \emph{Ph2\_ACF}. Before doing so, change line $127$ and $128$ of the \emph{Ph2\_ACF/setup.sh} file as:
 \begin{framed}
 \begin{verbatim}
 export CompileWithTCUSB=true
 \end{verbatim}
 \end{framed}
 
-Currently the TCUsb package used for POH tests is customized and downloadable from \url{https://gitlab.cern.ch/pszydlik/cmsph2_tcusb/-/tree/File_refactor?ref_type=heads}.
+Currently the tcusb package used for POH tests is customized and downloadable from \url{https://gitlab.cern.ch/pszydlik/cmsph2_tcusb/-/tree/File_refactor?ref_type=heads}.
 
 \subsection{Installing Powder (POH only)}
-In order to use from remote the Power Supply during the test of POH's the Powder package must be installed \url{https://gitlab.cern.ch/cms_tk_ph2/power_supply}.
-The config file must be properly modified:
+Powder package must be installed to use the Power Supply from remote during the test of the POH \\
+\url{https://gitlab.cern.ch/cms_tk_ph2/power_supply}.
+After the installation the config file must be properly modified:
 \begin{framed}
 \begin{verbatim}
 File: config/configRohdeSchwartz.xml
@@ -347,7 +349,7 @@ PowerSupplyController -c config/configRohdeSchwartz.xml
 \end{verbatim}
 \end{framed}
 
-\subsection{Installing Tc-controller}
+\subsection{Installing tc-controller}
 The code can be downloaded from \url{https://gitlab.cern.ch/cms-ot-hybrids/tc-controller} and installed following the instructions in the README.
 \par A config file must be added to define the test channel to be used by the controlled power supply.
 In our case {\it config/configGenova.xml} has been edited accordingly to the setup in Powder package.
@@ -377,8 +379,8 @@ and then do:
 Note that if you have more than one FC7 board you need to provide a different (0, 1, 2, ...) board Id for each FC7.
 
 \subsubsection{Writing the right firmware to the FC7 boards}
-Firmware of the OT tracker can be download here: \url{https://udtc-ot-firmware.web.cern.ch/}
-Someone should tell you which is the latest version of the firmware for your hw configuration.
+Firmware of the OT tracker can be downloaded here: \url{https://udtc-ot-firmware.web.cern.ch/}.
+Cross-check with experts which is the latest version of the firmware for your HW configuration.
 
 \begin{framed}
 \begin{verbatim}
@@ -577,7 +579,7 @@ python3 cratetesting.py
 \end{verbatim}
 \end{framed}
 
-The GUI will ask how many hybrid one wants to test and to insert the full code (bar code) of test card and hybrid module.
+The GUI will ask how many hybrids are to be tested and to insert the full code (bar code) of each test card and hybrid module.
 No character will be typed if different from expected (e.g. usually names start with CMSPH2). \\
 When the button to run the test is pushed, the GUI will first check for the presence of the boards in the mini-crate and then actually run the test. \\
 
