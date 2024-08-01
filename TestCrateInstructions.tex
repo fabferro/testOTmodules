@@ -395,7 +395,7 @@ fpgaconfig -b 'boardId' -c settings/PS_ROH.xml
 -f 'firmware_file_name_on_the_PC.bin' 
 -i 'firmware_name_on_the_microSD'
 
-#for the electrical FC7 (the one with the blue falt cables)
+#for the electrical FC7 (the one with the blue flat cables)
 fpgaconfig -b 1 -c settings/PS_ROH.xml -f FC7_firmwares/ps_roh_5g_electrical.bin 
 -i ps_roh_5g_electrical
 
@@ -516,6 +516,7 @@ PSROHTest -f settings/PS_ROH.xml --ep 0xCA --test-fcmd --test-clock --test-i2c 1
 Note that all the optical channels are tested. At least one should be seen working.
 If all the channels fail there is a problem in the transmission/receiving of the optical signal.\footnote[1]{FC7 version has to be checked.}
 \footnote[2]{If an optical mezzanine is missing channel 0 might be seen as locked (!). Disable these channels to prevent errors.}
+Note also that if channel 0 is enabled inside PS\_ROH.xml, for some reason the test uses it instead of the locked channel and the test gets stuck.  
 
 In order to run the test from command line for POH's:
 \begin{framed}
