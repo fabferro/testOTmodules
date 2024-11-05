@@ -21,7 +21,7 @@
 
 \begin{document}
 \title{Tutorial for the installation of Outer tracker hybrid test system}
-\author{P. Chatagnon, F. Ferro}
+\author{P. Chatagnon, F. Ferro, M. Gallo}
 \date{\today} 
 
 \maketitle
@@ -164,6 +164,7 @@ In order to provide a clock to the system, the AMC13 module can be used (\url{ht
 
 The following instructions complete the information and tutorials at:
 \begin{itemize}
+\item \url{https://cernbox.cern.ch/s/9snRcqXlD3EQW8w} \label{PatrykInstructions}
 \item \url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/} 
 \item \url{https://cms-tracker-daq.web.cern.ch/cms-tracker-daq/tutorials/pc_connection/}.
 \end{itemize}
@@ -289,38 +290,72 @@ Files $/etc/hosts$ and $/etc/ethers$ should look like in Fig. \ref{GoodHosts}
   \label{GoodHosts}
 \end{figure}
 
+\newpage 
 
+\subsection{Installing dependencies}
 
+Be sure to follow the README of every repositories to find and install other dependencies and prerequisites.
+(Especially the Ph2 might be more complex \url{https://ph2acf.docs.cern.ch/general/required_install/})
+Access full instructions and links through Ref. \ref{PatrykInstructions}. 
 
-\subsection{Installing Ph2\_ACF}
-Ph2\_ACF is the main sodtware package for DAQ.
-Follow the instruction in \url{https://gitlab.cern.ch/cms_tk_ph2/Ph2_ACF}. 
-The README provides straight forward tutorial to compile the code. On Alma9, follow the instruction in the \emph{"Setup on RHEL 9.1 or AlmaLinux 9.1"} section, and compile using the instruction in the \emph{"The Ph2\_ACF software"} section.
+For most packages, you can follow the usual instructions from each README, installing them in the same folder, here named as \emph{test\_hybrids}.
+Quite often it’s just:
 
-Be careful to install all the required packages. For what concerns {\it protobuf} package beware that during the checks (\emph{make check}) a big amount of memory is allocated, thus one of the checks can fail simply bacause of not enough available RAM.  
-
-After cloning the repository, be sure to select the branch you want. See the available tags with \emph{git tag} and checkout the wished one with \emph{git checkout $<tagname>$}, like v4-14.
-
-
-\subsection{Installing tcusb}
-Tcusb is a library handling the usb communication between the PC and the crate.
-Follow the instructions in \url{https://gitlab.cern.ch/cms_tk_ph2/cmsph2_tcusb}.
-Once tcusb has been compiled, you are asked to recompile \emph{Ph2\_ACF}. Before doing so, change line $127$ and $128$ of the \emph{Ph2\_ACF/setup.sh} file as:
 \begin{framed}
 \begin{verbatim}
-export CompileWithTCUSB=true
+cd test_hybrids
+git clone <package git url> --recurse-submodules
+cd <package folder name>
+source setup.sh
+mkdir build
+cd build
+cmake3 ..
+make -j8
 \end{verbatim}
 \end{framed}
 
-Currently the tcusb package used for POH tests is customized and downloadable from \url{https://gitlab.cern.ch/pszydlik/cmsph2_tcusb/-/tree/File_refactor?ref_type=heads}.
+The build order is as follows:
+\begin{itemize}
+    \item cmsph2\_tcusb (\ref{roh_tcusb})
+    \item poh\_tcusb (\ref{poh_tcusb})
+    \item POWDER (\ref{powder})
+    \item tc\_controller (\ref{tc-controller})
+    \item Ph2\_ACF (\ref{ph2_acf})
+    \item GUI\_OTHYB (\ref{gui})
+\end{itemize}
 
-\subsection{Installing Powder (POH only)}
-Powder package must be installed to use the Power Supply from remote during the test of the POH \\
-\url{https://gitlab.cern.ch/cms_tk_ph2/power_supply}.
-After the installation the config file must be properly modified:
+\subsubsection{cmsph2\_tcusb}
+
+Tcusb is a library handling the usb communication between the PC and the crate.  \\
+The installation has two parts, one for ROH and other for POH.
+
+\subsubsection{cmsph2\_tcusb - ROH} 
+\label{roh_tcusb}
+
+The code can be downloaded from \url{https://gitlab.cern.ch/cms_tk_ph2/cmsph2_tcusb}.
+
+\subsubsection{cmsph2\_tcusb - POH} 
+\label{poh_tcusb}
+
+The code can be downloaded from \url{https://gitlab.cern.ch/pszydlik/cmsph2_tcusb/-/tree/include_POH?ref_type=heads}. For this package, before doing the instructions explained in page 9, use \url{https://gitlab.cern.ch/pszydlik/cmsph2_tcusb/} for your git clone command, cloning into a different folder name than \emph{cmsph2\_tcusb} (such as \emph{poh\_tcusb}) and follow doing a checkout to the correct branch: 
+
 \begin{framed}
 \begin{verbatim}
-File: config/configRohdeSchwartz.xml
+git clone https://gitlab.cern.ch/pszydlik/cmsph2_tcusb/ --recurse-submodules poh_tcusb
+cd poh_tcusb
+git checkout include_POH
+\end{verbatim}
+\end{framed}
+
+\subsubsection{POWDER}
+\label{powder}
+
+POWDER package must be installed to use the Power Supply from remote. \\
+The code can be downloaded from \url{https://gitlab.cern.ch/cms_tk_ph2/power_supply}.
+After the installation, the config file, \emph{power\_supply/config/configRohdeSchwartz.xml}, must be properly modified:
+\begin{framed}
+\begin{verbatim}
+File: power_supply/config/configRohdeSchwartz.xml
 
 <?xml version="1.0"? encoding="UTF-8"?>
 <Devices>
@@ -332,27 +367,259 @@ File: config/configRohdeSchwartz.xml
         IPAddress   =   "192.168.0.10"
         Port        =   "5025"
     >
-    <Channel ID="P3V3"        Channel="2" InUse ="No" />
-    <Channel ID="N3V3"        Channel="3" InUse ="No" />
-    <Channel ID="TestVoltage" Channel="1" InUse ="Yes" />
-    <Channel ID="Empty"       Channel="4" InUse ="No" />
+    <Channel ID="P3V3"          Channel="2" InUse ="No" />
+    <Channel ID="N3V3"          Channel="3" InUse ="No" />
+    <Channel ID="TestVoltage"   Channel="1" InUse ="Yes" />
+    <Channel ID="Empty"         Channel="4" InUse ="No" />
     </PowerSupply>
 </Devices>
+
 \end{verbatim}
 \end{framed}
 Note that only the TestVoltage channel is remotely controlled. The other (2) channels must stay set as they are.
 
-\par Before running the POH test the power supply server must be started on a new terminal window and left running till needed
+\subsubsection{tc-controller}
+\label{tc-controller}
+
+The code can be downloaded from \url{https://gitlab.cern.ch/cms-ot-hybrids/tc-controller.git} and installed following the instructions in the README.
+
+A checkout to the \emph{sync\_with\_usb\_a} branch and cloning the \emph{NetworkUtils} folder is necessary:
+
 \begin{framed}
 \begin{verbatim}
-PowerSupplyController -c config/configRohdeSchwartz.xml
+git clone https://gitlab.cern.ch/cms-ot-hybrids/tc-controller.git --recurse-submodules
+cd tc-controller
+git checkout sync_with_usb_a
+rm -r NetworkUtils
+git clone https://gitlab.cern.ch/cms_tk_ph2/NetworkUtils
 \end{verbatim}
 \end{framed}
 
-\subsection{Installing tc-controller}
-The code can be downloaded from \url{https://gitlab.cern.ch/cms-ot-hybrids/tc-controller} and installed following the instructions in the README.
-\par A config file must be added to define the test channel to be used by the controlled power supply.
-In our case {\it config/configGenova.xml} has been edited accordingly to the setup in Powder package.
+After the installation, a config file must be added to define the test channel to be used by the controlled power supply.
+In our case, a file named {\it tc\_controller/config/configGenova.xml} has to be added accordingly to the setup in POWDER package.
+
+\begin{framed}
+\begin{verbatim}
+File: tc_controller/config/configGenova.xml
+
+<PowerSupply ID="PSU">
+    <TestVoltageChannel ID="TestVoltage"/>
+</PowerSupply>
+\end{verbatim}
+\end{framed}
+
+\subsubsection{Ph2\_ACF}
+\label{ph2_acf}
+
+Ph2\_ACF is the main sodtware package for DAQ.
+The code can be downloaded from \url{https://gitlab.cern.ch/cms-ot-hybrids/Ph2_ACF_PS_ROH}. 
+The README provides straight forward tutorial to compile the code. On Alma9, follow the instruction in the \emph{"Setup on RHEL 9.1 or AlmaLinux 9.1"} section, and compile using the instruction in the \emph{"The Ph2\_ACF software"} section.
+
+Be careful to install all the required packages. For what concerns {\it protobuf} package beware that during the checks (\emph{make check}) a big amount of memory is allocated, thus one of the checks can fail simply bacause of not enough available RAM.  
+
+%After cloning the repository, be sure to select the branch you want. See the available tags with \emph{git tag} and checkout the wished one with \emph{git checkout $<tagname>$}, like v4-14
+
+After the installation, change the file \emph{Ph2\_ACF\_PS\_ROH/settings/default.xml}, which the GUI's \emph{configuration.json} is pointed to.
+
+\begin{framed}
+\begin{verbatim}
+File: Ph2_ACF_PS_ROH/settings/default.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<HwDescription>
+  <BeBoard Id="0" boardType="D19C" eventType="VR" linkReset="1" boardReset="1" 
+  configure="1">
+    <connection id="board" uri="chtcp-2.0://localhost:10203?target=192.168.0.7:50001"    
+    address_table="file://settings/address_tables/uDTC_OT_address_table.xml" />
+    <CDCE configure="0" clockRate="320"/>
+    <OpticalGroup Id="0" FMCId="L8" reset="0"></OpticalGroup>
+  </BeBoard>
+</HwDescription>
+
+\end{verbatim}
+\end{framed}
+
+\newpage
+
+Also, for Ph2 ROH seetings, \emph{Ph2\_ACF\_PS\_ROH/settings/PS\_ROH.xml} needs to be changed to:
+
+\begin{framed}
+\begin{verbatim}
+File: Ph2_ACF_PS_ROH/settings/PS_ROH.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<HwDescription>
+  <!--##############
+      OPTICAL FC7
+  ###############-->
+  <!-- <BeBoard Id="0" boardType="D19C" eventType="VR"> -->
+  <BeBoard Id="0" boardType="D19C" eventType="VR" linkReset="1" boardReset="1"
+  configure="1">
+      <connection id="board" uri="chtcp-2.0://localhost:10203?target=192.168.0.104:50001" 
+      address_table="file://settings/address_tables/uDTC_OT_address_table.xml" />
+    <CDCE configure="0" clockRate="320"/>
+
+<!--
+    <OpticalGroup Id="0" FMCId="L8" reset="1">
+        <lpGBT_Files path="${PH2ACF_BASE_DIR}/settings/lpGBTFiles/" />
+        <lpGBT Id="0" version="1" optical="1" configFile="lpGBT_v1_PS.txt">
+          <Settings
+          />
+        </lpGBT>
+    </OpticalGroup>
+-->
+                                .
+                                .
+                                .                                
+    <!-- 15 - default (internal oscillator), 0 - AMC13 -->
+    <Register name="clock_source_u7">0</Register>
+    <!-- 3 = 3 = internal oscillator (default), 1 = fmc_l8_clk1, 2 = fmc_l8_clk0, 
+    0 = COAX_IN -->
+    <Register name="clock_source_u8">3</Register>   
+                                .
+                                .
+                                .
+  <!--##############
+    ELECTRICAL FC7
+  ###############-->
+  <BeBoard Id="1" boardType="D19C" eventType="VR" linkReset="1" boardReset="1" 
+  configure="1">
+    <connection id="board" uri="chtcp-2.0://localhost:10203?target=192.168.0.7:50001" 
+    address_table="file://settings/address_tables/uDTC_PSROH_elect_address_table.xml" />
+    <CDCE configure="1" clockRate="320"/>
+
+
+    <!--CONFIG-->
+        <!-- 15 - default (internal oscillator), 0 - AMC13 -->
+        <Register name="clock_source_u7">0</Register>
+        <!-- 3 = internal oscillator (default), 1 = fmc_l8_clk1, 2 = fmc_l8_clk0,
+        0 = COAX_IN -->
+        <Register name="clock_source_u8">3</Register>
+
+
+  </BeBoard>
+
+
+\end{verbatim}
+\end{framed}
+
+\subsubsection{GUI\_OTHYB}
+\label{gui}
+
+The code can be downloaded from \url{https://gitlab.cern.ch/cms-ot-hybrids/gui-othyb.git}. This one, according to the README, it’s just qt files compilation, no need for the procedure explained in page 9.
+
+For the GUI and GUI dependencies: 
+
+\begin{framed}
+\begin{verbatim}
+git clone https://gitlab.cern.ch/cms-ot-hybrids/gui-othyb.git --recurse-submodules 
+cd gui-othyb
+pip3 install -r requirements.txt
+cd ui_files/
+./compilePyQt5.sh
+cd ../
+
+\end{verbatim}
+\end{framed}
+
+\emph{gui-othyb/configuration.json} file must also be updated. Paths and test command name must be correctly specified (configurations for ROH and POH tests are of course different).
+
+The following parameters need to be changed carefully:
+\begin{itemize}
+\item[-] default\_Ph2\_ACF\_directory : the directory where Ph2\_ACF is installed
+\item[-] default\_fw\_image : the firmware image to be installed on the electrical FC7
+\item[-] default\_settings\_files : a HW configuration xml file done on purpose where the electrical FC7 is board 0 (default.xml). 
+\end{itemize}
+
+\begin{framed}
+\begin{verbatim}
+File: gui-othyb/configuration.json
+
+{
+    "default_Ph2_ACF_directory": "../Ph2_ACF_PS_ROH",
+    "default_fw_image": "default_LV",
+    "default_settings_files": [
+        [
+            "settings/default.xml"
+        ]
+    ],
+    "default_serial_number_validator": "(((((PS)|(2S))-?(((FEH[0-9]{2}(R|L))|
+    ROH[0-9]{2}|SEH|POH)))|(8CBC3((18)|(40))))-[0-9]{9})|(CMSPH2-PRT[0-9]{5})",
+    "number_of_crates": 1,
+    "number_of_hybrids": 1,
+    "vendor_mode": true,
+    "db_target": "production",
+    "db_run_type": "VAT",
+    "location": "Genova",
+    "institute": "Genova",
+    "tester": "Miguel Gallo",
+    "hv_channels": [],
+    "lv_channels": [
+        [
+            "PSU",
+            "TestVoltage"
+        ]
+    ],
+    "use_chamber": false,
+    "climatic_chamber_IP": "192.168.1.40",
+    "dwell_time": 600,
+    "connect_to_othyb_db": false,
+    "skip_upload": true,
+    "skip_maint": true,
+    "expert_mode": true
+}
+
+\end{verbatim}
+\end{framed}
+
+The first time the GUI is used, the files \emph{hybrid/PSROH.py} and \emph{hybrid/PSPOH.py} needs to be updated. Especially the following variables:
+\begin{itemize}
+\item[-] PH2\_ACF\_WORKING\_DIRECTORY
+\item[-] DESC\_FILES
+\item[-] FIRMWARE
+\end{itemize}
+
+For the file \emph{gui-othyb/hybrids/PSPOH.py}, you should change those lines:
+
+\begin{framed}
+\begin{verbatim}
+File: gui-othyb/hybrids/PSPOH.py
+
+    # CONFIGURATION VARIABLES
+    PH2_ACF_WORKING_DIRECTORY="../tc-controller"
+    DESC_FILES = [["./config/configGenova.xml"]]
+    SERIAL_NUMBER_VALIDATOR = "^PS(-)?POH-\d{9}$"
+    TEST_PROCEDURE = 'pspoh_w_root_file'
+    TEST_ARGUMENTS = [[ '--useLoadVector', '--tc_File', 
+    './config/configPSPOH_short.xml', '--supplyStep', '1', '--supplyMax', 
+    '11', '--supplyMin', '8']]
+    FIRMWARE = [["2s_seh_electrical"]] 
+
+\end{verbatim}
+\end{framed}
+
+And, for \emph{gui-othyb/hybrids/PSROH.py}, you should change those lines:
+
+\begin{framed}
+\begin{verbatim}
+File: gui-othyb/hybrids/PSROH.py
+
+    # CONFIGURATION VARIABLES
+    PH2_ACF_WORKING_DIRECTORY="../Ph2_ACF_PS_ROH/"
+    DESC_FILES = [["settings/PS_ROH.xml"]]
+    SERIAL_NUMBER_VALIDATOR = ".*"
+    TEST_PROCEDURE = 'PSROHTest'
+    TEST_ARGUMENTS = [['--test-external-pattern', '0xAA', '--test-fcmd', 
+    "--fcmd-pattern", "10", "--OptoEleClock", '--test-clock', '--test-reset', 
+    '--test-i2c', '1000', '--measure-input-iv', '-b', '--thresholdFile', 
+    '/home/cms/TrackerP2/OTHybrids/test_miguel_new/Ph2_ACF_PS_ROH/settings/
+    OTHybridTestingThresholdVars.yml']]
+    FIRMWARE = [["ps_12m_5g_cic2_l12octa_l8quad", "ps_12m_10g_cic2_l12octa_l8quad", 
+    "ps_roh_5g_electrical", "ps_roh_10g_electrical"]]       
+    #Crate 1: [Optical for 5G, Optical for 10G, Electrical for 5G, Electrical for 10G]
+
+\end{verbatim}
+\end{framed}
 
 \subsection{Communicating with the FC7/Crate}
 
@@ -372,7 +639,7 @@ To communicate with the FC7 using PH2\_ACF, you need to provide the IP adress of
 and then do:
 \begin{framed}
 \begin{verbatim}
-/opt/cactus/bin/controlhub_start
+service controlhub start
 \end{verbatim}
 \end{framed}
 
@@ -528,55 +795,44 @@ pspoh_w_root_file -f ./config/configGenova.xml --useLoadVector \
 \end{verbatim}
 \end{framed}
 
+\subsection{Running the tests using the GUI}
 
-\subsection{Installing and using the GUI}
-In order to install the GUI, see the repository in gitlab \\
-\url{https://gitlab.cern.ch/imateosd/gui-for-hybrids-testing-on-crate-systems}\\
-
-The first time the GUI is used, the file hybrid/PSROH.py (or hybrid/PSPOH.py) might need to be updated. Especially the following variables:
-\begin{itemize}
-\item[-] PH2\_ACF\_WORKING\_DIRECTORY
-\item[-] DESC\_FILES
-\item[-] FIRMWARE
-\end{itemize}
-
-\begin{figure}[h!]
-\centering
- \includegraphics[width=\linewidth]{psroh.png} 
-  \caption{Screen display of a portion of hybrid/PSROH.py}
-  \label{screenshot}	
-\end{figure}
-
-configuration.json file must also be updated. Paths and test command name must be correctly specified (configurations for ROH and POH tests are of course different).
-\begin{figure}[h!]
-\centering
- \includegraphics[width=\linewidth]{configuration.png} 
-  \caption{Screen display of a portion of configuration.json for ROH test.}
-\end{figure}
-
-The following parameters need to be changed carefully:
-\begin{itemize}
-\item[-] default\_Ph2\_ACF\_directory : the directory where Ph2\_ACF is installed
-\item[-] default\_fw\_image : the firmware image to be installed on the electrical FC7
-\item[-] default\_settings\_files : a HW configuration xml file done on purpose where the electrical FC7 is board 0 (default.xml). 
-\end{itemize}
-
-CERN credential are requested the first time the GUI is run (or the cache reset). This is done to access the DB. For the moment being only SSO accounts are supported (no two factor authentication) that are registered to one of the following CERN e-groups:
+CERN credential are requested the first time the GUI is executed (or the cache reset). This is done to access the DB. For the moment being only SSO accounts are supported (no two factor authentication) that are registered to one of the following CERN e-groups:
 \begin{itemize}
 \item[-] Construction Operator: cms-tracker-assemblyOperators
 \item[-] Quality Control Operator: cms-tracker-qcOperators
 \item[-] Tracking Operator: cms-tracker-trackingOperators
 \end{itemize}
-The access is granted only to the {\it production} DB and not to the {\it development} one (see configuration.json). For more information:
+The access is granted only to the {\it production} DB and not to the {\it development} one (see \emph{configuration.json}). For more information:
 \url{https://espace.cern.ch/Tracker-Upgrade/DataBase/SitePages/Home.aspx}.
 
-The commands to run the GUI are:
+To use the GUI, two terminal windows are necessary, one for the power supply and other for the GUI. For this, follow these steps for each window:
+
+\subsubsection{POWDER terminal}
+
+The power supply server must be started on a new terminal window and left running till needed
 
 \begin{framed}
 \begin{verbatim}
-#inside gui-for-hybrids-testing-on-crate-systems
+cd test_hybrids
+cd power_supply
 source setup.sh
-python3 cratetesting.py
+PowerSupplyController -c config/configRohdeSchwartz.xml
+\end{verbatim}
+\end{framed}
+
+\subsubsection{GUI terminal}
+
+In a new terminal window other than the power supply one, run the following commands:
+
+\begin{framed}
+\begin{verbatim}
+cd test_hybrids
+cd Ph2_ACF_PS_ROH
+source setup.sh 
+cd ../gui-othyb
+source setup.sh 
+python cratetesting.py
 \end{verbatim}
 \end{framed}
 
@@ -584,7 +840,7 @@ The GUI will ask how many hybrids are to be tested and to insert the full code (
 No character will be typed if different from expected (e.g. usually names start with CMSPH2). \\
 When the button to run the test is pushed, the GUI will first check for the presence of the boards in the mini-crate and then actually run the test. \\
 
-When the test is finished, at least one Enter command must be typed in the terminal window to complete the DB upload procedure. It typically fails despite messages of success are displayed. 
+When the test is finished, at least one Enter command must be typed in the terminal window to complete the DB upload procedure. It typically fails despite messages of success are displayed.
 
 \newpage
 
