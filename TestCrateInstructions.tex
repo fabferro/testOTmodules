@@ -292,6 +292,28 @@ Files $/etc/hosts$ and $/etc/ethers$ should look like in Fig. \ref{GoodHosts}
 
 \newpage 
 
+\subsection{Changing MCH IP}
+
+For changing the MCH IP, one should run the command:
+
+\begin{framed}
+\begin{verbatim}
+telnet mch
+\end{verbatim}
+\end{framed}
+
+This command will open the MCH interface. Typing \textit{h}, one can see the list of possible commands to execute. For now, the important one is \textit{ip}. After running the IP command, one will see that it is possible to change the IP numbers, as shown below:
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=.5\linewidth]{Pictures/telnet.png} 
+  \caption{MCH interface.}
+  \label{telnet}
+\end{figure}
+
+After changing the IP to the desired value, continue through the IP options, save the change and exit the MCH interface. Remember always to change to the right values in $/etc/hosts $ after the change.
+
+
 \subsection{Installing dependencies}
 
 Be sure to follow the README of every repositories to find and install other dependencies and prerequisites.
@@ -306,7 +328,7 @@ Quite often it’s just:
 cd test_hybrids
 git clone <package git url> --recurse-submodules
 cd <package folder name>
-source setup.sh
+. setup.sh
 mkdir build
 cd build
 cmake3 ..
@@ -323,6 +345,8 @@ The build order is as follows:
     \item Ph2\_ACF (\ref{ph2_acf})
     \item GUI\_OTHYB (\ref{gui})
 \end{itemize}
+
+After installing the required dependencies, one can also follow the steps to configure the power supply as a service (\ref{ps-service}) and the GUI application shortcut (\ref{GUI-short}).
 
 \subsubsection{cmsph2\_tcusb}
 
@@ -589,15 +613,15 @@ For the file \emph{gui-othyb/hybrids/PSPOH.py}, you should change those lines:
 \begin{verbatim}
 File: gui-othyb/hybrids/PSPOH.py
 
-    # CONFIGURATION VARIABLES
-    PH2_ACF_WORKING_DIRECTORY="../tc-controller"
-    DESC_FILES = [["./config/configGenova.xml"]]
-    SERIAL_NUMBER_VALIDATOR = "^PS(-)?POH-\d{9}$"
-    TEST_PROCEDURE = 'pspoh_w_root_file'
-    TEST_ARGUMENTS = [[ '--useLoadVector', '--tc_File', 
-    './config/configPSPOH_short.xml', '--supplyStep', '1', '--supplyMax', 
-    '11', '--supplyMin', '8']]
-    FIRMWARE = [["2s_seh_electrical"]] 
+# CONFIGURATION VARIABLES
+PH2_ACF_WORKING_DIRECTORY="../tc-controller"
+DESC_FILES = [["./config/configGenova.xml"]]
+SERIAL_NUMBER_VALIDATOR = "^PS(-)?POH-\d{9}$"
+TEST_PROCEDURE = 'pspoh_w_root_file'
+TEST_ARGUMENTS = [[ '--useLoadVector', '--tc_File', 
+'./config/configPSPOH_short.xml', '--supplyStep', '1', '--supplyMax', 
+'11', '--supplyMin', '8']]
+FIRMWARE = [["2s_seh_electrical"]] 
 
 \end{verbatim}
 \end{framed}
@@ -608,19 +632,19 @@ And, for \emph{gui-othyb/hybrids/PSROH.py}, you should change those lines:
 \begin{verbatim}
 File: gui-othyb/hybrids/PSROH.py
 
-    # CONFIGURATION VARIABLES
-    PH2_ACF_WORKING_DIRECTORY="../Ph2_ACF_PS_ROH/"
-    DESC_FILES = [["settings/PS_ROH.xml"]]
-    SERIAL_NUMBER_VALIDATOR = ".*"
-    TEST_PROCEDURE = 'PSROHTest'
-    TEST_ARGUMENTS = [['--test-external-pattern', '0xAA', '--test-fcmd', 
-    "--fcmd-pattern", "10", "--OptoEleClock", '--test-clock', '--test-reset', 
-    '--test-i2c', '1000', '--measure-input-iv', '-b', '--thresholdFile', 
-    '/home/cms/TrackerP2/OTHybrids/test_miguel_new/Ph2_ACF_PS_ROH/settings/
-    OTHybridTestingThresholdVars.yml']]
-    FIRMWARE = [["ps_12m_5g_cic2_l12octa_l8quad", "ps_12m_10g_cic2_l12octa_l8quad", 
-    "ps_roh_5g_electrical", "ps_roh_10g_electrical"]]       
-    #Crate 1: [Optical for 5G, Optical for 10G, Electrical for 5G, Electrical for 10G]
+# CONFIGURATION VARIABLES
+PH2_ACF_WORKING_DIRECTORY="../Ph2_ACF_PS_ROH/"
+DESC_FILES = [["settings/PS_ROH.xml"]]
+SERIAL_NUMBER_VALIDATOR = ".*"
+TEST_PROCEDURE = 'PSROHTest'
+TEST_ARGUMENTS = [['--test-external-pattern', '0xAA', '--test-fcmd', 
+"--fcmd-pattern", "10", "--OptoEleClock", '--test-clock', '--test-reset', 
+'--test-i2c', '1000', '--measure-input-iv', '-b', '--thresholdFile', 
+'/home/cms/TrackerP2/OTHybrids/test_miguel_new/Ph2_ACF_PS_ROH/settings/
+OTHybridTestingThresholdVars.yml']]
+FIRMWARE = [["ps_12m_5g_cic2_l12octa_l8quad", "ps_12m_10g_cic2_l12octa_l8quad", 
+"ps_roh_5g_electrical", "ps_roh_10g_electrical"]]       
+#Crate 1: [Optical for 5G, Optical for 10G, Electrical for 5G, Electrical for 10G]
 
 \end{verbatim}
 \end{framed}
@@ -633,16 +657,144 @@ An additional change, with respect to the DB upload procedure, is also needed fo
 \begin{verbatim}
 Files: gui-othyb/hybrids/*.py
 
-    db_loader = DBupload(database=BaseUploader.database,
-    login_type='login2', path_to_dbloader_api=db_loader_path, 
-    verbose=True)
-    db_access = DBaccess(database=f'trker_{BaseUploader.database}', 
-    login_type='login2', verbose=False)
+db_loader = DBupload(database=BaseUploader.database,
+login_type='login2', path_to_dbloader_api=db_loader_path, 
+verbose=True)
+db_access = DBaccess(database=f'trker_{BaseUploader.database}', 
+login_type='login2', verbose=False)
 
 \end{verbatim}
 \end{framed}
 
 This change will add a 2FA OTP login step for running the tests using the GUI, which is necessary for the DB upload procedure. More details at \ref{DBup}.
+
+\subsubsection{Power Supply as service}
+\label{ps-service}
+
+First make a script, which will be what the service runs continuously, \emph{/usr/local/bin/service\_script.sh}:
+
+\begin{framed}
+\begin{verbatim}
+File: /usr/local/bin/service\_script.sh
+
+#!/bin/bash
+
+cd test_hybrids/power_supply
+. setup.sh
+PowerSupplyController -c config/configRohdeSchwartz.xml --verbose
+    
+\end{verbatim}
+\end{framed}
+
+Make it executable
+
+\begin{framed}
+\begin{verbatim}
+chmod u+x /usr/local/bin/service_script.sh
+\end{verbatim}
+\end{framed}
+
+Then make a file to define the service, in \emph{/etc/systemd/system/powersupply.service}. The service name will be \textit{powersupply}.
+
+\begin{framed}
+\begin{verbatim}
+File: /etc/systemd/system/powersupply.service
+
+[Unit]
+Description=Power Supply Server service
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=cms
+ExecStart=/usr/local/bin/service_script.sh
+
+[Install]
+WantedBy=multi-user.target
+
+\end{verbatim}
+\end{framed}
+
+Then reload the services and start the power supply service, using:
+
+\begin{framed}
+\begin{verbatim}
+sudo systemctl daemon-reload
+sudo systemctl start powersupply
+\end{verbatim}
+\end{framed}
+
+To have the service start on startup:
+
+\begin{framed}
+\begin{verbatim}
+sudo systemctl enable powersupply
+\end{verbatim}
+\end{framed}
+
+\subsubsection{GUI application shortcut}
+\label{GUI-short}
+
+Couple steps are required to create a shortcut Icon for GUI execution to replace the manual run from commandline.
+
+Create execution script in shared location i.e. \emph{/usr/local/share/GUI-HybTest.sh} which contains:
+
+\begin{framed}
+\begin{verbatim}
+File: /usr/local/share/GUI-HybTest.sh
+
+#!/bin/bash
+cd /home/cms/TrackerP2/OTHybrids/test_hybrids/gui-othyb
+. setup.sh
+FILE_WITH_DATETIME=`date +"GUI_LOG_%Y%m%d-%H%M%S.txt"`
+touch ./gui_exec_logs/${FILE_WITH_DATETIME}
+python3 cratetesting.py &>gui_exec_logs/${FILE_WITH_DATETIME}
+
+\end{verbatim}
+\end{framed}
+
+Make sure to create \emph{gui-othyb/gui\_exec\_logs} directory in your system
+
+Create desktop file in shared location i.e. \emph{/usr/local/share/applications/GUI\_HybTest.desktop} which contains:
+
+\begin{framed}
+\begin{verbatim}
+File: /usr/local/share/applications/GUI_HybTest.desktop
+
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=GUI-Hybrid-Testing
+Icon=/home/cms/icon.png
+Exec=/usr/local/share/GUI-HybTest.sh
+
+\end{verbatim}
+\end{framed}
+
+Specify correct paths to exec script and to the chosen icon.
+Ensure that the shell script has correct user permissions so that you can run it. (you can test it by running it from terminal). One good option is to set chown and chmod to those two files:
+
+Assuming you are using the cms user within the clean room PC: 
+
+\begin{framed}
+\begin{verbatim}
+sudo chown cms /usr/local/share/GUI-HybTest.sh
+sudo chmod 755 /usr/local/share/GUI-HybTest.sh
+
+sudo chown cms /usr/local/share/applications/GUI_HybTest.desktop
+sudo chmod 755 /usr/local/share/applications/GUI_HybTest.desktop
+\end{verbatim}
+\end{framed}
+
+And finally, execute the following command:
+\begin{framed}
+\begin{verbatim}
+sudo update-desktop-database /usr/local/share/applications/
+\end{verbatim}
+\end{framed}
+
 
 \subsection{Communicating with the FC7/Crate}
 
@@ -829,7 +981,14 @@ CERN credential are requested the first time the GUI is executed (or the cache r
 The access is granted only to the {\it production} DB and not to the {\it development} one (see \emph{configuration.json}). 
 % For more information: \url{https://espace.cern.ch/Tracker-Upgrade/DataBase/SitePages/Home.aspx}.
 
-To use the GUI, two terminal windows are necessary, one for the power supply and other for the GUI (see \ref{DBup}).
+To use the GUI, one has two options:
+
+\begin{itemize}
+    \item Run the power supply as a service and execute the GUI application shortcut, named as "GUI-Hybrid-Testing"
+    \item Open two terminal windows, one for the power supply and other for the GUI (see \ref{DBup}).
+\end{itemize}
+
+PS.: Always check if the Power Supply button "Output" is ON before running the tests. 
 
 \subsubsection{DB upload procedure}
 \label{DBup}
@@ -838,10 +997,9 @@ For the 2FA OTP login, which is necessary to be done before running the GUI test
 
 \begin{framed}
 \begin{verbatim}
-cd test_hybrids
-cd gui-othyb
-source py4dbupload/bin/setup.sh
-source py4dbupload/bin/part_distribution.sh
+cd test_hybrids/gui-othyb
+. py4dbupload/bin/setup.sh
+. py4dbupload/bin/part_distribution.sh
 \end{verbatim}
 \end{framed}
 
@@ -858,15 +1016,27 @@ If everything is well set and the command works, one should see something like t
 
 This procedure is necessary to be done daily, since the OTP expires after 24h.
 
+\subsubsection{GUI shortcut}
+
+Firstly, one have to check if the power supply service is running (or just restart it), using the following command:
+
+\begin{framed}
+\begin{verbatim}
+sudo systemctl status powersupply
+(sudo systemctl restart powersupply)
+\end{verbatim}
+\end{framed}
+
+Then, one can click on the shortcut icon and proceed with the testing.
+
 \subsubsection{POWDER terminal}
 
 The power supply server must be started on a new terminal window and left running till needed
 
 \begin{framed}
 \begin{verbatim}
-cd test_hybrids
-cd power_supply
-source setup.sh
+cd test_hybrids/power_supply
+. setup.sh
 PowerSupplyController -c config/configRohdeSchwartz.xml
 \end{verbatim}
 \end{framed}
@@ -877,22 +1047,19 @@ In a new terminal window other than the power supply one, run the following comm
 
 \begin{framed}
 \begin{verbatim}
-cd test_hybrids
-cd Ph2_ACF_PS_ROH
-source setup.sh 
-cd ../gui-othyb
-source setup.sh 
+cd test_hybrids/gui-othyb
+. setup.sh 
 python cratetesting.py
 \end{verbatim}
 \end{framed}
+
+\newpage
 
 The GUI will ask how many hybrids are to be tested and to insert the full code (bar code) of each test card and hybrid module.
 No character will be typed if different from expected (e.g. usually names start with CMSPH2). \\
 When the button to run the test is pushed, the GUI will first check for the presence of the boards in the mini-crate and then actually run the test. \\
 
-\newpage
-
-When the test is finished, one should expect a similar output to the print shown below. 
+If the test was executed with the terminals, one should expect a similar output to the print shown below when the test is finished. 
 
 \begin{figure}[h!]
 \centering
@@ -900,6 +1067,8 @@ When the test is finished, one should expect a similar output to the print shown
   \caption{Print-screen when the DB upload is successfully done.}
   \label{DBupload}
 \end{figure}
+
+If the test was executed with the shortcut, the output is going to be saved in a file inside \emph{gui-othyb/gui\_exec\_logs}.
 
 \newpage
 
