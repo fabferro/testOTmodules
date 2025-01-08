@@ -26,6 +26,10 @@
 
 \maketitle
 
+\tableofcontents
+
+\newpage
+
 \section{Overview of the test system}
 
 This tutorial describes the steps to install the hybrid test system for the Phase 2 tracker of CMS. A schematic description of the test system is shown in Figure \ref{TestSchematic}. The following instructions describe the installation of the connections between the PC and the multiplexing crate, the PC and the FC7 and the power supply of the crate. 
@@ -794,6 +798,43 @@ And finally, execute the following command:
 sudo update-desktop-database /usr/local/share/applications/
 \end{verbatim}
 \end{framed}
+
+\subsubsection{Updating packages with \textit{git stash} command}
+
+One useful tool for the maintenance of the testing system is to know how to update any git cloned repository with the \textit{git stash} command. It keeps all local changes not merged to the cloned branch, while updating for a newer version of the mentioned branch.
+
+To stash the current changes, run:
+
+\begin{framed}
+\begin{verbatim}
+git stash push -m "Description of the changes"
+\end{verbatim}
+\end{framed}
+
+Before applying the stash, update the branch to incorporate the latest changes and reapply the stash:
+
+\begin{framed}
+\begin{verbatim}
+git pull
+git stash apply
+\end{verbatim}
+\end{framed}
+
+If there are conflicts between the stash changes and the current branch, github will notify. Resolve the conflicts and then finalize the stash:
+
+\begin{framed}
+\begin{verbatim}
+git stash drop
+\end{verbatim}
+\end{framed}
+
+If the conflicts were not resolved and one proceed with the \textit{git stash}, the command will keep both conflicted parts inside the script, indicating which part is related to the local and to the remote scripts. An example is showed below:
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=.7\linewidth]{Pictures/gitstash.jpg} 
+  \caption{Git stash output example when there are a conflict script.}
+\end{figure}
 
 
 \subsection{Communicating with the FC7/Crate}
