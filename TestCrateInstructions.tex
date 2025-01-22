@@ -604,6 +604,8 @@ File: gui-othyb/configuration.json
 
 If the DB uploading is necessary or wanted, change the \emph{skip\_upload} flag to \emph{false}.
 
+If the \textit{Scan from database} option is necessary or wanted, change the \emph{connect\_to\_othyb\_db} flag to \emph{true} to and the \emph{skip\_maint} flag to \emph{false}.
+
 The first time the GUI is used, the files \emph{hybrid/PSROH.py} and \emph{hybrid/PSPOH.py} needs to be updated. Especially the following variables:
 \begin{itemize}
 \item[-] PH2\_ACF\_WORKING\_DIRECTORY
@@ -1029,7 +1031,7 @@ To use the GUI, one has two options:
     \item Open two terminal windows, one for the power supply and other for the GUI (see \ref{DBup}).
 \end{itemize}
 
-PS.: Always check if the Power Supply button "Output" is ON before running the tests. 
+PS.: Always check if the Power Supply button \textit{Output} is ON before running the tests. 
 
 \subsubsection{DB upload procedure}
 \label{DBup}
@@ -1096,7 +1098,32 @@ python cratetesting.py
 
 \newpage
 
-The GUI will ask how many hybrids are to be tested and to insert the full code (bar code) of each test card and hybrid module.
+When the last command is executed, the following window will open:
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=1.0\linewidth]{Pictures/GUI.png} 
+  \caption{GUI layout, used for controlling the climatic chamber and performing the test procedure.}
+  \label{oi}
+\end{figure}
+
+Clicking in the upper-left corner button, \textit{Prepare next text}, the following window will open:
+
+\begin{figure}[!pbth]
+\centering
+ \includegraphics[width=0.7\linewidth]{Pictures/GUI-prepare.png} 
+  \caption{Prepare next text window.}
+  \label{tchau}
+\end{figure}
+
+The GUI will ask how many hybrids are to be tested and to insert the information of each test card and hybrid module. There are three ways of doing the insertion:
+
+\begin{itemize}
+    \item \textbf{Scan from database} - Uses the local database GUI, see \ref{scanner} for more information.
+    \item \textbf{Load from file}  - Uses the \textit{saved\_user\_scanned\_hybrids.json} file, which has to be filled manually beforehand.
+    \item \textbf{Manually} - Without selecting one of the previous options, one can insert the full code (bar code) of each test card and hybrid module. 
+\end{itemize}
+
 No character will be typed if different from expected (e.g. usually names start with CMSPH2). \\
 When the button to run the test is pushed, the GUI will first check for the presence of the boards in the mini-crate and then actually run the test. \\
 
@@ -1111,11 +1138,225 @@ If the test was executed with the terminals, one should expect a similar output 
 
 If the test was executed with the shortcut, the output is going to be saved in a file inside \emph{gui-othyb/gui\_exec\_logs}.
 
+\subsection{Running the local database GUI}
+\label{scanner}
+
+\textbf{Disclaimer 1:} As pointed before, it is important to set the \emph{connect\_to\_othyb\_db} flag to \emph{true} to and the \emph{skip\_maint} flag to \emph{false} inside the \emph{gui-othyb/configuration.json} file, in order to be able to use this application.
+\textbf{Disclaimer 2:} It is not necessary to be running the local database GUI to run the testing GUI. 
+
+This GUI allows users to: 
+
+\begin{itemize}
+    \item Register hybrids, test cards and other components (also with a scanner if they have any kind of bar or QR code).
+    \item With the registration, mount and dismount hybrids into test cards.
+    \item Save and show hybrids and test cards status, with labels like Bad, Good, Untested, etc.
+\end{itemize}
+
+The idea is to have an easier and more automatic way to organize and categorize all components that are going to be used throughout the tests. More information on how to install and configure it, see Appendix \ref{installscanner}.
+
+In a terminal window, run the following commands:
+
+\begin{framed}
+\begin{verbatim}
+cd test_hybrids/gui-othyb
+. setup.sh 
+cd test_system_database/DatabaseTool
+python launcher.py
+\end{verbatim}
+\end{framed}
+
+\newpage
+
+When the last command is executed, the following window will open:
+
+\begin{figure}[!pbth]
+\centering
+ \includegraphics[width=0.5\linewidth]{Pictures/scanning-GUI-login.png} 
+  \caption{Local database GUI login screen.}
+  \label{oi2}
+\end{figure}
+
+It requires a login and password, which are \textit{admin} and \textit{admin}. After filling up the credentials, the following window will open: 
+
+\begin{figure}[!pbth]
+\centering
+ \includegraphics[width=0.7\linewidth]{Pictures/scanning-GUI.png} 
+  \caption{Local database GUI layout.}
+  \label{tchau2}
+\end{figure}
+
+One always needs to first register a new component, in order to the database be able to recognize it and successfully perform all the other actions.
+
+For example, to mount a hybrid into a test card, the order would be: \textit{Register/Edit component} $\rightarrow$ \textit{Register/Edit hybrid} $\rightarrow$ \textit{Hybrid - Test Card pairing tool}.
+
+After that, the hybrid and the test card are going to be identified as \textit{mounted}. Trying to mount again this hybrid/test card into another component is going to make the GUI give out warning pop-ups. 
+
+All the tests performed with the testing GUI, while connected to the local database, will be also be saved inside the local database.
+
+After register, mount and test hybrids and test cards, one can check the details of each component, hybrid and test with the specific \textit{View details} button.
+
+The \textit{Check status} button gives a simpler and quicker information about the component status, using the labels mentioned before.
+
+
 \newpage
 
 \appendix
 
 \appendixpage
+\section{Guide to install the scanning tool GUI}
+\label{installscanner}
+
+\subsection{PSQL server preparation}
+
+\textbf{Disclaimer:} Requires sudo access
+
+Clone the following GitLab repository \emph{https://gitlab.cern.ch/malvesga/hybrids-test-system-database}
+
+Install PSQL: 
+
+\begin{framed}
+\begin{verbatim}
+yum install postgresql-server
+postgresql-setup --initdb
+systemctl enable postgresql.service
+systemctl start postgresql.service
+\end{verbatim}
+\end{framed}
+
+Log on to user postgres, execute the following commands and exit the postgres user. For the Genova system, change $<user>$ for \textit{cms}: 
+
+\begin{framed}
+\begin{verbatim}
+sudo su - postgres
+createdb othyb_testsystem
+createuser -s <user>
+exit
+\end{verbatim}
+\end{framed}
+
+If one's username is or has to be different from \textit{cms}, one need to find and change all instances inside the .sql files that refers to \textit{cms} to the chosen username.
+
+Enter the cloned folder and run the following commands. The password necessary for accessing PSQL server is defined inside \emph{Initialize\_roles.sql}, which is defined as \textit{cms2025}:
+
+\begin{framed}
+\begin{verbatim}
+cd hybrids-test-system-database/
+psql othyb_testsystem 
+\i ./Initialize_roles.sql 
+\i ./Database_and_hybrid_table_creation.sql 
+\i ./Maintainance_intervals.sql 
+\end{verbatim}
+\end{framed}
+
+To check that all tables were correctly created, run the following commands and exit the PSQL server: 
+
+\begin{framed}
+\begin{verbatim}
+SET search_path TO ts_db; 
+\ds
+exit
+\end{verbatim}
+\end{framed}
+
+To enable connecting to the PSQL server some other changes are required 
+
+First, one need to accept TCP/IP traffic on port 5432:
+
+\begin{framed}
+\begin{verbatim}
+sudo firewall-cmd --zone=public --add-port=5432/tcp --permanent
+\end{verbatim}
+\end{framed}
+
+Next, edit the file \emph{/var/lib/pgsql/data/postgresql.conf} in the line indicated below:
+
+\begin{framed}
+\begin{verbatim}
+File: /var/lib/pgsql/data/postgresql.conf
+
+# - Connection Settings -
+
+listen_addresses = '*'                  # what IP address(es) to listen on;
+\end{verbatim}
+\end{framed}
+
+Then, edit the file \emph{/var/lib/pgsql/data/pg\_hba.conf} in the following parts to include the lines for the \textit{cms} user:
+
+\begin{framed}
+\begin{verbatim}
+File: /var/lib/pgsql/data/pg_hba.conf
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             cms                                     md5
+local   all             all                                     peer
+# IPv4 local connections:
+host    all             cms             0.0.0.0/0               md5
+host    all             all             127.0.0.1/32            ident
+# IPv6 local connections:
+host    all             cms             ::1/128                 md5
+host    all             all             ::1/128                 ident
+# Allow replication connections from localhost, by a user with the
+# replication privilege.
+local   replication     all                                     peer
+host    replication     all             127.0.0.1/32            ident
+host    replication     all             ::1/128                 ident
+\end{verbatim}
+\end{framed}
+
+And, to finish the PSQL server preparation, restart the service: 
+
+\begin{framed}
+\begin{verbatim}
+sudo systemctl restart postgresql.service
+\end{verbatim}
+\end{framed}
+
+\subsection{Setup}
+
+\subsubsection{Database Link}
+
+Considering that one already cloned and installed all testing GUI's requirements, one can do the database link. For that, change the following inside \emph{gui-othyb/test\_system\_database/DatabaseEngine.py}:
+
+\begin{framed}
+\begin{verbatim}
+File: gui-othyb/test_system_database/DatabaseEngine.py
+
+SQLALCHEMY_DATABASE_URI = f'postgresql://<user>:<password>@<host>:5432/<database>'
+\end{verbatim}
+\end{framed}
+
+Where, for Genova's case, it would be: 
+
+\begin{framed}
+\begin{verbatim}
+File: gui-othyb/test_system_database/DatabaseEngine.py
+
+SQLALCHEMY_DATABASE_URI = f'postgresql://cms:cms2025@localhost:5432/othyb_testsystem'
+\end{verbatim}
+\end{framed}
+
+\subsubsection{Admin User Creation}
+
+Create a user using the UI. Then use the following commands to upgrade that user to an administrator: 
+
+\begin{framed}
+\begin{verbatim}
+psql othyb_testsystem 
+SET search_path TO ts_db; 
+UPDATE users SET accesslevel = 100 WHERE username = 'admin'
+SET pwdhash = crypt('admin', gen_salt('bf')) WHERE username = 'admin';
+INSERT INTO users (username, pwdhash, displayname, accesslevel)
+VALUES ('admin', crypt('admin', gen_salt('bf')), 'Administrator', 100);
+SELECT username, pwdhash FROM users;
+\end{verbatim}
+\end{framed}
+
+With that, one will create the username and password to be used for the local database GUI's login credentials. Using the instructions above, one's credentials will be: \textit{admin} and \textit{admin}, as showed before at Section \ref{scanner}.
+
+\newpage
+
 \section{Original instruction files}
 \includepdf[pages=-]{./Includes/PS-POH_instructions_to_run_tests.pdf}
 \includepdf[pages=-]{./Includes/PS-POH_mounting_guide.pdf}
