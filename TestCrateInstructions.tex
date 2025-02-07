@@ -106,6 +106,14 @@ In order for the test card multiplexing to work, each backplane has to be given 
   \label{BackPlaneSwitch}
 \end{figure}
 
+Figure \ref{BackPlane0Switch} shows a closer picture from the backplane 0 switch arrangement. 
+
+\begin{figure}[h!]
+ \includegraphics[width=\linewidth]{Pictures/backplane0_pin_positions.jpg} 
+  \caption{Backplane 0 switch arrangement.}
+  \label{BackPlane0Switch}
+\end{figure}
+
 \subsection{Data transmission cables}
 Once the power cable is correctly installed, the FMCs and usb cables have to be installed.
 \subsubsection{FMC cables connections}
@@ -259,7 +267,7 @@ sudo vim /etc/hosts
 \end{verbatim}
 \end{framed}
 
-The IP address of the new FC7 can be any address on the same sub-network as the ethernet port it is connected to: e.g. 192.168.0.---  in our case. Obviously, it also has to be different from addresses already used in $/etc/hosts $.
+The IP address of the new FC7 can be any address on the same sub-network as the ethernet port it is connected to: e.g. 192.168.10.---  in our case. Obviously, it also has to be different from addresses already used in $/etc/hosts $.
 
 \begin{framed}
 \begin{verbatim}
@@ -278,23 +286,36 @@ You should now be able to ping the new FC7.
   \label{GoodPing2}
 \end{figure}
 
-Files $/etc/hosts$ and $/etc/ethers$ should look like in Fig. \ref{GoodHosts}
+Files $/etc/hosts$ and $/etc/ethers$ should look like in Fig. \ref{GoodHosts}. It is important to keep just one spacebar spacing and no extra lines.
 
 \begin{figure}[h!]
 \centering
 %\begin{subfigure}[b]{0.475\textwidth}
   %      \centering
-        \includegraphics[width=\textwidth]{hosts.png}
+        \includegraphics[width=.8\textwidth]{hosts.png}
     %\end{subfigure}
 %\begin{subfigure}[b]{0.475\textwidth}
    %     \centering
-        \includegraphics[width=0.5\textwidth]{ethers.png}
+        \includegraphics[width=.5\textwidth]{ethers.png}
     %\end{subfigure}
   \caption{Screen display of /etc/hosts and /etc/ethers.}
   \label{GoodHosts}
 \end{figure}
 
-\newpage 
+Another useful command to check the IPs and MAC addresses is \emph{arp}: 
+
+\begin{framed}
+\begin{verbatim}
+arp -a
+\end{verbatim}
+\end{framed}
+
+\begin{figure}[h!]
+\centering
+ \includegraphics[width=.8\linewidth]{Pictures/arp.png} 
+  \caption{Screen display of the arp command.}
+  \label{telnet}
+\end{figure}
 
 \subsection{Changing MCH IP}
 
@@ -306,7 +327,7 @@ telnet mch
 \end{verbatim}
 \end{framed}
 
-This command will open the MCH interface. Typing \textit{h}, one can see the list of possible commands to execute. For now, the important one is \textit{ip}. After running the IP command, one will see that it is possible to change the IP numbers, as shown below:
+This command will open the MCH interface. Typing \textit{h}, one can see the list of possible commands to execute. For now, the important one is \textit{ip}. After running the IP command, one will see that it is possible to change the IP numbers, as shown below in Picture \ref{telnet}:
 
 \begin{figure}[h!]
 \centering
@@ -457,7 +478,7 @@ File: Ph2_ACF_PS_ROH/settings/default.xml
 <HwDescription>
   <BeBoard Id="0" boardType="D19C" eventType="VR" linkReset="1" boardReset="1" 
   configure="1">
-    <connection id="board" uri="chtcp-2.0://localhost:10203?target=192.168.0.7:50001"    
+    <connection id="board" uri="chtcp-2.0://localhost:10203?target=fc7_ctl_1:50001"    
     address_table="file://settings/address_tables/uDTC_OT_address_table.xml" />
     <CDCE configure="0" clockRate="320"/>
     <OpticalGroup Id="0" FMCId="L8" reset="0"></OpticalGroup>
@@ -483,7 +504,7 @@ File: Ph2_ACF_PS_ROH/settings/PS_ROH.xml
   <!-- <BeBoard Id="0" boardType="D19C" eventType="VR"> -->
   <BeBoard Id="0" boardType="D19C" eventType="VR" linkReset="1" boardReset="1"
   configure="1">
-      <connection id="board" uri="chtcp-2.0://localhost:10203?target=192.168.0.104:50001" 
+      <connection id="board" uri="chtcp-2.0://localhost:10203?target=fc7_roh_1:50001" 
       address_table="file://settings/address_tables/uDTC_OT_address_table.xml" />
     <CDCE configure="0" clockRate="320"/>
 
@@ -512,7 +533,7 @@ File: Ph2_ACF_PS_ROH/settings/PS_ROH.xml
   ###############-->
   <BeBoard Id="1" boardType="D19C" eventType="VR" linkReset="1" boardReset="1" 
   configure="1">
-    <connection id="board" uri="chtcp-2.0://localhost:10203?target=192.168.0.7:50001" 
+    <connection id="board" uri="chtcp-2.0://localhost:10203?target=fc7_ctl_1:50001" 
     address_table="file://settings/address_tables/uDTC_PSROH_elect_address_table.xml" />
     <CDCE configure="1" clockRate="320"/>
 
@@ -943,6 +964,7 @@ Bus 001 Device 005: ID 10c4:87a0 Silicon Labs PSRV2-CMSPH2-BRD00701
 
 
 \subsubsection{Using AMC13 clock}
+\label{AMC13}
 In order to have more reliable results, the clock provided by the AMC13 module should be used, instead the internal one.
 The AMC13 module should first set up and enabled. What follows has been extracted by the code and notes in gitlab repository at\\ \url{https://gitlab.cern.ch/cms-ot-hybrids/amc13-mch-configuration-scripts}.
 
@@ -1031,7 +1053,7 @@ To use the GUI, one has two options:
     \item Open two terminal windows, one for the power supply and other for the GUI (see \ref{DBup}).
 \end{itemize}
 
-PS.: Always check if the Power Supply button \textit{Output} is ON before running the tests. 
+%PS.: Always check if the Power Supply button \textit{Output} is ON before running the tests. 
 
 \subsubsection{DB upload procedure}
 \label{DBup}
@@ -1060,6 +1082,7 @@ If everything is well set and the command works, one should see something like t
 This procedure is necessary to be done daily, since the OTP expires after 24h.
 
 \subsubsection{GUI shortcut}
+\label{GUIshort}
 
 Firstly, one have to check if the power supply service is running (or just restart it), using the following command:
 
@@ -1074,7 +1097,7 @@ Then, one can click on the shortcut icon and proceed with the testing.
 
 \subsubsection{POWDER terminal}
 
-The power supply server must be started on a new terminal window and left running till needed
+If the power supply service was not setup, one can run it manually. The power supply server must be started on a new terminal window and left running till needed
 
 \begin{framed}
 \begin{verbatim}
@@ -1096,24 +1119,24 @@ python cratetesting.py
 \end{verbatim}
 \end{framed}
 
-\newpage
+%\newpage
 
-When the last command is executed, the following window will open:
+When the last command is executed, a window like Picture \ref{GUIlayout} will appear.
 
 \begin{figure}[h!]
 \centering
- \includegraphics[width=1.0\linewidth]{Pictures/GUI.png} 
+ \includegraphics[width=\linewidth]{Pictures/GUI.png} 
   \caption{GUI layout, used for controlling the climatic chamber and performing the test procedure.}
-  \label{oi}
+  \label{GUIlayout}
 \end{figure}
 
-Clicking in the upper-left corner button, \textit{Prepare next text}, the following window will open:
+Clicking in the upper-left corner button, \textit{Prepare next text}, a window like Picture \ref{prepare} will appear.
 
 \begin{figure}[!pbth]
 \centering
- \includegraphics[width=0.7\linewidth]{Pictures/GUI-prepare.png} 
-  \caption{Prepare next text window.}
-  \label{tchau}
+ \includegraphics[width=\linewidth]{Pictures/GUI-prepare.png} 
+  \caption{``Prepare next test'' window.}
+  \label{prepare}
 \end{figure}
 
 The GUI will ask how many hybrids are to be tested and to insert the information of each test card and hybrid module. There are three ways of doing the insertion:
@@ -1127,7 +1150,7 @@ The GUI will ask how many hybrids are to be tested and to insert the information
 No character will be typed if different from expected (e.g. usually names start with CMSPH2). \\
 When the button to run the test is pushed, the GUI will first check for the presence of the boards in the mini-crate and then actually run the test. \\
 
-If the test was executed with the terminals, one should expect a similar output to the print shown below when the test is finished. 
+If the test was executed with the terminals, one should expect a similar output to the print shown in Picture \ref{DBupload} when the test is finished. 
 
 \begin{figure}[h!]
 \centering
@@ -1354,6 +1377,41 @@ SELECT username, pwdhash FROM users;
 \end{framed}
 
 With that, one will create the username and password to be used for the local database GUI's login credentials. Using the instructions above, one's credentials will be: \textit{admin} and \textit{admin}, as showed before at Section \ref{scanner}.
+
+\newpage
+
+\appendixpage
+\large
+\section{Quick instructions to run tests}
+\label{instruct}
+
+{\Large{\textbf{Setup instructions:}}}
+
+\begin{enumerate}
+    \item If a power cycle was performed recently, execute Sections \ref{fc7connection} and \ref{AMC13} commands
+    \item Check if \textbf{controlhub}, \textbf{powersupply}, \textbf{rarpd}, \textbf{NetworkManager} services are active 
+    \item Daily, insert a new OTP code to enable the database upload procedure, explained at Section \ref{DBup}
+    \item Register all components (hybrids and test cards) that are going to be tested with the scanning tool to the \textbf{GUI-Local-Database} application 
+    \item Mount/unmount the components accordingly, to allow the testing hybrids GUI to access the right informations
+    \item Insert the test cards mounted with hybrids into the crate slots and connect them into the backplanes. For ROHs, also remember to connect the optical cables
+\end{enumerate}
+
+\vspace{1cm}
+
+{\Large{\textbf{Instructions for GUI shortcut:}}}
+\newline
+
+More details at Section \ref{GUIshort}.
+
+\begin{enumerate}
+    \item Open the \textbf{GUI-Hybrid-Testing} application
+    \item Press the \textbf{``Prepare next test''} button
+    \item In the recently opened window, write down the number of hybrids to be tested and press \textbf{``Next $>$''}
+    \item Back to the main GUI window, press the \textbf{``Run test''} button 
+    \item Wait the tests to be over and close the application
+    \item Outputs and results can be found at \textit{gui-othyb/gui\_exec\_logs/}, \newline \textit{Ph2\_ACF\_PS\_ROH/ResultsGUI} and \textit{tc\_controller/ResultsGUI}
+    
+\end{enumerate}
 
 \newpage
 
